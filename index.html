@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Evrak Dağıtım Sistemi - V4</title>
+<title>Evrak Dağıtım Sistemi - V4 Güvenli</title>
 
 <style>
 :root { --x: 0; --y: 0; --xp: 0; --yp: 0; --marquee-speed: 40s; }
@@ -47,7 +47,7 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 .modal-content h3 { margin-top: 0; color: #38bdf8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
 .setting-group { margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; }
 .setting-group h4 { margin: 0 0 10px 0; color: #94a3b8; font-size: 14px; }
-.setting-group input[type="text"], .setting-group input[type="number"], .setting-group input[type="date"], .setting-group select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; box-sizing: border-box; color-scheme: dark; outline: none; }
+.setting-group input[type="text"], .setting-group input[type="number"], .setting-group input[type="date"], .setting-group input[type="month"], .setting-group select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; box-sizing: border-box; color-scheme: dark; outline: none; }
 .setting-group select option { background: #0f172a; } .setting-group select:focus, .setting-group input:focus { border-color: #38bdf8; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 .save-btn { background: #10b981; } .save-btn:hover { background: #059669; }
@@ -101,10 +101,10 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
   <div class="login-box">
     <h2>Sisteme Giriş</h2>
     <select id="loginUserSelect">
-      <option value="yonetici">YÖNETİCİ</option>
-      <option value="evrakci">EVRAK GİRİŞ</option>
-      <option value="guncelleme">GÜNCELLEME</option>
-      <option value="tetkik">TETKİK</option>
+      <option value="yonetici">Yönetici</option>
+      <option value="evrakci">Evrak Giriş</option>
+      <option value="guncelleme">Güncelleme</option>
+      <option value="tetkik">Tetkik Personeli</option>
     </select>
     <input type="password" id="loginPass" placeholder="Şifre">
     <button class="login-btn" id="loginBtn">Giriş Yap</button>
@@ -154,25 +154,11 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 
     <div class="setting-group">
       <h4>Kayan Yazı Hızı (Saniye)</h4>
-      <input type="number" id="adminMarqueeSpeed" min="10" max="120" placeholder="Örn: 40">
+      <div style="display:flex; align-items:center; gap:15px;">
+        <input type="range" id="adminMarqueeSpeed" min="10" max="120" step="5" value="40" style="flex:1;">
+        <span id="speedValueDisplay" style="color:#38bdf8; font-weight:bold; width:80px;">40 Sn</span>
+      </div>
       <p style="font-size:12px; color:#94a3b8; margin-top:5px;">Değer küçüldükçe yazı hızlanır (Varsayılan: 40).</p>
-    </div>
-
-    <div class="setting-group">
-      <h4>YÖNETİCİ Grubu Görünen Adı</h4>
-      <input type="text" id="adminName" placeholder="Grup Adı">
-    </div>
-    <div class="setting-group">
-      <h4>EVRAKÇI Grubu Görünen Adı</h4>
-      <input type="text" id="evrakciName" placeholder="Grup Adı">
-    </div>
-    <div class="setting-group">
-      <h4>GÜNCELLEME Grubu Görünen Adı</h4>
-      <input type="text" id="guncellemeName" placeholder="Grup Adı">
-    </div>
-    <div class="setting-group">
-      <h4>TETKİK Grubu Görünen Adı</h4>
-      <input type="text" id="yaziciName" placeholder="Grup Adı">
     </div>
 
     <div class="modal-actions">
@@ -185,13 +171,28 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 <!-- GEÇMİŞ KAYITLAR MODALI -->
 <div id="historyModal" class="modal-overlay">
   <div class="modal-content history-modal-content">
-    <h3>📅 Geçmiş Tarihli Kayıtlar</h3>
+    <h3>📅 Geçmiş Kayıtlar ve Raporlar</h3>
     <div class="history-layout">
       <div class="history-controls">
+        
         <div class="setting-group">
+          <h4>Sorgu Tipi</h4>
+          <select id="queryTypeSelect">
+            <option value="daily" selected>Günlük Sorgula</option>
+            <option value="monthly">Aylık Rapor (Toplam)</option>
+          </select>
+        </div>
+
+        <div class="setting-group" id="dailyInputGroup">
           <h4>Sorgulanacak Tarih</h4>
           <input type="date" id="historyDate">
         </div>
+
+        <div class="setting-group" id="monthlyInputGroup" style="display:none;">
+          <h4>Sorgulanacak Ay</h4>
+          <input type="month" id="historyMonth">
+        </div>
+
         <div class="setting-group">
           <h4>Sıfır Yapanlar</h4>
           <label class="filter-label"><input type="checkbox" id="showZerosCb"> Sıfır olanları da listede göster</label>
@@ -215,7 +216,7 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
       </div>
       <div class="history-results-container">
         <div id="historyResults" class="history-results">
-          <p style="text-align:center; color:#94a3b8; font-size:14px; margin-top:50px;">Lütfen sol taraftaki menüden sorgulamak istediğiniz tarihi seçiniz.</p>
+          <p style="text-align:center; color:#94a3b8; font-size:14px; margin-top:50px;">Lütfen sol taraftaki menüden sorgulama yapınız.</p>
         </div>
       </div>
     </div>
@@ -227,8 +228,7 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 
 <!-- KINETIC GRID JS -->
 <script>
-  const canvas = document.getElementById('kineticCanvas');
-  const ctx = canvas.getContext('2d');
+  const canvas = document.getElementById('kineticCanvas'); const ctx = canvas.getContext('2d');
   const CELL_SIZE = 55; const INFLUENCE_RADIUS = 260; const MAX_WARP = 24; const DOT_SPACING = 28; const LERP_SPEED = 0.08;
   const LINE_BASE = { r: 255, g: 255, b: 255, a: 0.13 }; const NODE_BASE_RADIUS = 1.8; const NODE_ACTIVE_RADIUS = 3.2;
   const theme = { bg: "#161618", lineActive: { r: 74, g: 158, b: 255, a: 0.9 }, nodeActive: { r: 74, g: 158, b: 255, a: 1.0 }, glow: "74,158,255", ripple: "100,180,255" };
@@ -244,11 +244,11 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 </script>
 
 <!-- ========================================== -->
-<!-- 2) FIREBASE VE UYGULAMA MANTIĞI JS         -->
+<!-- FIREBASE VE UYGULAMA MANTIĞI JS           -->
 <!-- ========================================== -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getDatabase, ref, onValue, runTransaction, set, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { getDatabase, ref, onValue, runTransaction, set, get, query, orderByKey, startAt, endAt } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -277,20 +277,20 @@ const names = [
 ];
 
 const ROLE_NAMES = {
-  'yonetici@sistem.com': 'YÖNETİCİ',
-  'evrakci@sistem.com': 'EVRAK GİRİŞ',
-  'guncelleme@sistem.com': 'GÜNCELLEME',
-  'tetkik@sistem.com': 'TETKİK'
+  'yonetici@sistem.com': 'Yönetici',
+  'evrakci@sistem.com': 'Evrak Giriş',
+  'guncelleme@sistem.com': 'Güncelleme',
+  'tetkik@sistem.com': 'Tetkik Personeli'
 };
 
 let currentUserEmail = null; 
-let rolesData = {};
 let sysConfigData = { announcement: "", showChampions: true, marqueeSpeed: 40 };
 let currentHistoryData = null; 
 let championsTextRaw = ""; 
+let cardStates = []; 
+let globalListeners = [];
 
 const container = document.getElementById("buttonContainer");
-const cardStates = []; 
 
 function getFormattedDate(dateObj) {
   const y = dateObj.getFullYear();
@@ -317,43 +317,35 @@ onAuthStateChanged(auth, (user) => {
     currentUserEmail = user.email;
     document.getElementById("loginScreen").style.display = "none";
     document.getElementById("mainApp").style.display = "block";
-    loadApplicationData(); 
+    initializeUIForUser();
   } else {
     currentUserEmail = null;
     document.getElementById("loginScreen").style.display = "flex";
     document.getElementById("mainApp").style.display = "none";
+    clearAllData();
   }
 });
 
-function loadApplicationData() {
-  const rolesRef = ref(database, 'Evrak-V4/settings/roles'); 
-  onValue(rolesRef, (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      rolesData = data;
-    } else {
-      rolesData = {
-        admin: { name: "YÖNETİCİ" },
-        evrakci: { name: "EVRAK GİRİŞ VE GÜNCELLEME PERSONELİ" },
-        guncelleme: { name: "GÜNCELLEME PERSONELİ" },
-        yazici: { name: "TETKİK PERSONELİ" }
-      };
-      set(rolesRef, rolesData);
-    }
-    updateRoleUI();
-  });
+function clearAllData() {
+  container.innerHTML = "";
+  cardStates = [];
+  globalListeners.forEach(unsubscribe => unsubscribe());
+  globalListeners = [];
+  document.getElementById("mainCounter").innerText = "0";
+  document.getElementById("extraCounter").innerText = "0";
+}
+
+function initializeUIForUser() {
+  clearAllData();
+  updateRoleUI();
 
   const sysConfigRef = ref(database, 'Evrak-V4/settings/systemConfig');
-  onValue(sysConfigRef, (snapshot) => {
-    if (snapshot.exists()) {
-      sysConfigData = snapshot.val();
-    } else {
-      sysConfigData = { announcement: "", showChampions: true, marqueeSpeed: 40 };
-      set(sysConfigRef, sysConfigData);
-    }
+  globalListeners.push(onValue(sysConfigRef, (snapshot) => {
+    if (snapshot.exists()) { sysConfigData = snapshot.val(); } 
+    else { sysConfigData = { announcement: "", showChampions: true, marqueeSpeed: 40 }; }
     document.documentElement.style.setProperty('--marquee-speed', (sysConfigData.marqueeSpeed || 40) + 's');
     updateMarqueeDisplay(); 
-  });
+  }));
 
   get(ref(database, `Evrak-V4/kayitlar/${yesterdayStr}/counters`)).then((snap) => {
     const data = snap.val();
@@ -387,7 +379,9 @@ function loadApplicationData() {
     updateMarqueeDisplay(); 
   });
 
-  onValue(ref(database, `Evrak-V4/kayitlar/${todayStr}/counters`), (snapshot) => {
+  renderCards();
+
+  globalListeners.push(onValue(ref(database, `Evrak-V4/kayitlar/${todayStr}/counters`), (snapshot) => {
     const data = snapshot.val() || {};
     let mTotal = 0, eTotal = 0;
     names.forEach((_, i) => {
@@ -397,21 +391,124 @@ function loadApplicationData() {
     });
     document.getElementById("mainCounter").innerText = mTotal;
     document.getElementById("extraCounter").innerText = eTotal;
+  }));
+}
+
+function renderCards() {
+  names.forEach((name, index) => {
+    const isMain = index < 17;
+    
+    let shouldRender = false;
+    if (currentUserEmail === 'yonetici@sistem.com') shouldRender = true;
+    else if ((currentUserEmail === 'evrakci@sistem.com' || currentUserEmail === 'guncelleme@sistem.com') && isMain) shouldRender = true;
+    else if (currentUserEmail === 'tetkik@sistem.com' && !isMain) shouldRender = true;
+    
+    if (!shouldRender) {
+      cardStates[index] = { element: null, isActive: false, isMain: isMain, counterSpan: null };
+      return; 
+    }
+
+    const activeRef = ref(database, `Evrak-V4/active/${index}`);
+    const card = document.createElement("div");
+    card.className = "glow-card";
+    if (!isMain) card.classList.add("extra-person");
+    
+    const innerGlow = document.createElement("div");
+    innerGlow.className = "card-inner-glow";
+    card.appendChild(innerGlow);
+    
+    const contentWrapper = document.createElement("div");
+    contentWrapper.className = "card-content";
+    
+    const topRow = document.createElement("div");
+    topRow.className = "card-top-row";
+    
+    const titleText = document.createElement("div");
+    titleText.className = "card-title";
+    titleText.innerText = name;
+    
+    const badge = document.createElement("div");
+    badge.className = "status-badge";
+    
+    if (currentUserEmail === 'yonetici@sistem.com') {
+      badge.classList.add('admin-hover');
+      badge.style.cursor = 'pointer';
+      badge.addEventListener("click", () => {
+        const currentStatus = cardStates[index].isActive;
+        set(activeRef, !currentStatus).catch(err => alert("Yetkiniz reddedildi."));
+      });
+    }
+
+    topRow.appendChild(titleText);
+    topRow.appendChild(badge);
+    
+    const counterSpan = document.createElement("div");
+    counterSpan.className = "counter";
+    counterSpan.innerText = "0";
+    
+    const button = document.createElement("button");
+    button.textContent = isMain ? "Evrak Ekle" : "Güncelleme Ekle";
+    button.className = "btn";
+
+    button.addEventListener("click", () => {
+      if (!button.disabled) {
+        const currentRealTimeDateStr = getFormattedDate(new Date()); 
+        if (currentRealTimeDateStr !== todayStr) {
+          alert("Gün değiştiği için sistem otomatik olarak yeni güne geçiş yapıyor...");
+          location.reload(); return; 
+        }
+        const currentCounterRef = ref(database, `Evrak-V4/kayitlar/${currentRealTimeDateStr}/counters/${index}`);
+        runTransaction(currentCounterRef, (currentCount) => { return (currentCount || 0) + 1; })
+        .catch(err => alert("İşlem reddedildi. (Güvenlik Kuralları)"));
+      }
+    });
+
+    contentWrapper.appendChild(topRow);
+    contentWrapper.appendChild(counterSpan);
+    contentWrapper.appendChild(button);
+    card.appendChild(contentWrapper);
+    container.appendChild(card);
+
+    cardStates[index] = { element: card, badge: badge, isActive: false, isMain: isMain, counterSpan: counterSpan };
+
+    globalListeners.push(onValue(activeRef, (snapshot) => {
+      const isActive = snapshot.val() || false;
+      cardStates[index].isActive = isActive;
+      badge.innerText = isActive ? "AÇIK" : "KAPALI";
+      badge.className = "status-badge " + (isActive ? "open" : "closed");
+      
+      if (isActive) { button.disabled = false; button.classList.remove("disabled"); } 
+      else { button.disabled = true; button.classList.add("disabled"); }
+      
+      if (currentUserEmail !== 'yonetici@sistem.com') {
+        card.style.display = isActive ? "flex" : "none";
+      } else {
+        card.style.display = "flex";
+      }
+    }));
   });
 }
 
 function updateMarqueeDisplay() {
-  let finalText = "";
+  const marquee = document.getElementById('winnersMarquee');
+  marquee.innerHTML = ""; 
+  
   if (sysConfigData.announcement && sysConfigData.announcement.trim() !== "") {
-    finalText += `<span style="color:#ef4444;">🔴 YÖNETİCİ DUYURUSU: ${sysConfigData.announcement}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
+    const span1 = document.createElement('span');
+    span1.style.color = '#ef4444';
+    span1.textContent = '🔴 YÖNETİCİ DUYURUSU: ' + sysConfigData.announcement;
+    marquee.appendChild(span1);
+    marquee.appendChild(document.createTextNode('\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'));
   }
   if (sysConfigData.showChampions) {
-    finalText += `<span style="color:#fbbf24;">${championsTextRaw}</span>`;
+    const span2 = document.createElement('span');
+    span2.style.color = '#fbbf24';
+    span2.textContent = championsTextRaw;
+    marquee.appendChild(span2);
   }
-  if (finalText === "") {
-    finalText = "<span style='color:#94a3b8;'>Sistem Aktif... Tüm personele iyi çalışmalar dileriz.</span>";
+  if (!sysConfigData.announcement && !sysConfigData.showChampions) {
+    marquee.textContent = 'Sistem Aktif... Tüm personele iyi çalışmalar dileriz.';
   }
-  document.getElementById('winnersMarquee').innerHTML = finalText;
 }
 
 function updateRoleUI() {
@@ -419,14 +516,13 @@ function updateRoleUI() {
   const settingsBtn = document.getElementById("settingsBtn");
   const historyBtn = document.getElementById("historyBtn");
 
-  document.getElementById("roleText").innerText = rolesData[currentUserEmail.split('@')[0]]?.name || ROLE_NAMES[currentUserEmail] || "KULLANICI";
+  document.getElementById("roleText").innerText = ROLE_NAMES[currentUserEmail] || "KULLANICI";
 
   if (currentUserEmail === 'yonetici@sistem.com') {
     resetBtn.style.display = 'inline-block'; settingsBtn.style.display = 'inline-block'; historyBtn.style.display = 'inline-block';
   } else {
     resetBtn.style.display = 'none'; settingsBtn.style.display = 'none'; historyBtn.style.display = 'none';
   }
-  updateCardsVisibility();
 }
 
 document.body.addEventListener('pointermove', (e) => {
@@ -436,99 +532,6 @@ document.body.addEventListener('pointermove', (e) => {
   document.documentElement.style.setProperty('--y', y.toFixed(2));
   document.documentElement.style.setProperty('--yp', (y / window.innerHeight).toFixed(2));
 });
-
-names.forEach((name, index) => {
-  const activeRef = ref(database, `Evrak-V4/active/${index}`);
-  const card = document.createElement("div");
-  card.className = "glow-card";
-  if (index >= 17) card.classList.add("extra-person");
-  const innerGlow = document.createElement("div");
-  innerGlow.className = "card-inner-glow";
-  card.appendChild(innerGlow);
-  const contentWrapper = document.createElement("div");
-  contentWrapper.className = "card-content";
-  const topRow = document.createElement("div");
-  topRow.className = "card-top-row";
-  const titleText = document.createElement("div");
-  titleText.className = "card-title";
-  titleText.innerText = name;
-  const badge = document.createElement("div");
-  badge.className = "status-badge";
-  
-  badge.addEventListener("click", () => {
-    if (currentUserEmail === 'yonetici@sistem.com') {
-      const currentStatus = cardStates[index].isActive;
-      set(activeRef, !currentStatus).catch(err => alert("Yetkiniz yok veya bağlantı koptu."));
-    }
-  });
-
-  topRow.appendChild(titleText);
-  topRow.appendChild(badge);
-  const counterSpan = document.createElement("div");
-  counterSpan.className = "counter";
-  counterSpan.innerText = "0";
-  const button = document.createElement("button");
-  button.textContent = index < 17 ? "Evrak Ekle" : "Güncelleme Ekle";
-  button.className = "btn";
-
-  button.addEventListener("click", () => {
-    if (!button.disabled) {
-      const currentRealTimeDateStr = getFormattedDate(new Date()); 
-      if (currentRealTimeDateStr !== todayStr) {
-        alert("Gün değiştiği için sistem otomatik olarak yeni güne geçiş yapıyor...");
-        location.reload(); return; 
-      }
-      const currentCounterRef = ref(database, `Evrak-V4/kayitlar/${currentRealTimeDateStr}/counters/${index}`);
-      runTransaction(currentCounterRef, (currentCount) => { return (currentCount || 0) + 1; }).catch(err => {
-        alert("İşlem reddedildi. Yetkiniz olmayabilir.");
-      });
-    }
-  });
-
-  contentWrapper.appendChild(topRow);
-  contentWrapper.appendChild(counterSpan);
-  contentWrapper.appendChild(button);
-  card.appendChild(contentWrapper);
-  container.appendChild(card);
-
-  cardStates[index] = { element: card, badge: badge, isActive: false, isMain: index < 17, counterSpan: counterSpan };
-
-  onValue(activeRef, (snapshot) => {
-    const isActive = snapshot.val() || false;
-    cardStates[index].isActive = isActive;
-    badge.innerText = isActive ? "AÇIK" : "KAPALI";
-    badge.className = "status-badge " + (isActive ? "open" : "closed");
-    if (isActive) { button.disabled = false; button.classList.remove("disabled"); } 
-    else { button.disabled = true; button.classList.add("disabled"); }
-    updateCardsVisibility();
-  });
-});
-
-function updateCardsVisibility() {
-  if (!currentUserEmail) return;
-  cardStates.forEach((state) => {
-    const { element, badge, isActive, isMain } = state;
-    let shouldShow = false;
-
-    if (currentUserEmail === 'yonetici@sistem.com') {
-      shouldShow = true; badge.style.cursor = 'pointer'; badge.classList.add('admin-hover');
-      state.element.querySelector('.btn').style.display = 'block';
-    } 
-    else if (currentUserEmail === 'evrakci@sistem.com') {
-      if (isMain && isActive) shouldShow = true; badge.style.cursor = 'default'; badge.classList.remove('admin-hover');
-      state.element.querySelector('.btn').style.display = 'block';
-    } 
-    else if (currentUserEmail === 'guncelleme@sistem.com') {
-      if (!isMain && isActive) shouldShow = true; badge.style.cursor = 'default'; badge.classList.remove('admin-hover');
-      state.element.querySelector('.btn').style.display = 'block';
-    }
-    else if (currentUserEmail === 'tetkik@sistem.com') {
-      if (isActive) shouldShow = true; badge.style.cursor = 'default'; badge.classList.remove('admin-hover');
-      state.element.querySelector('.btn').style.display = 'none';
-    }
-    element.style.display = shouldShow ? "flex" : "none";
-  });
-}
 
 const loginBtn = document.getElementById("loginBtn");
 const loginUserSelect = document.getElementById("loginUserSelect");
@@ -541,10 +544,7 @@ loginPass.addEventListener("keypress", (e) => { if(e.key === "Enter") performLog
 function performLogin() {
   const selectedRole = loginUserSelect.value;
   const passText = loginPass.value;
-  
-  if (!passText) {
-    alert("Lütfen şifrenizi girin."); return;
-  }
+  if (!passText) { alert("Lütfen şifrenizi girin."); return; }
   
   const email = selectedRole + "@sistem.com";
   signInWithEmailAndPassword(auth, email, passText)
@@ -552,90 +552,106 @@ function performLogin() {
     .catch((error) => { alert("Hatalı şifre girdiniz!"); console.error(error); });
 }
 
-logoutBtn.addEventListener("click", () => {
-  signOut(auth).catch((error) => console.error("Çıkış hatası", error));
-});
+logoutBtn.addEventListener("click", () => { signOut(auth).catch((error) => console.error(error)); });
 
 document.getElementById("resetBtn").addEventListener("click", () => {
   if (confirm("DİKKAT: Bu işlem sadece BUGÜNÜN tüm sayaçlarını sıfırlar. Emin misiniz?")) {
-    names.forEach((_, index) => { set(ref(database, `Evrak-V4/kayitlar/${todayStr}/counters/${index}`), 0); });
+    names.forEach((_, index) => { set(ref(database, `Evrak-V4/kayitlar/${todayStr}/counters/${index}`), 0).catch(e => alert("Yetkisiz.")); });
   }
 });
 
 const settingsModal = document.getElementById("settingsModal");
-document.getElementById("settingsBtn").addEventListener("click", () => {
-  document.getElementById("adminName").value = rolesData.admin?.name || "";
-  document.getElementById("evrakciName").value = rolesData.evrakci?.name || ""; 
-  document.getElementById("guncellemeName").value = rolesData.guncelleme?.name || ""; 
-  document.getElementById("yaziciName").value = rolesData.yazici?.name || ""; 
+const speedSlider = document.getElementById("adminMarqueeSpeed");
+const speedDisplay = document.getElementById("speedValueDisplay");
 
+speedSlider.addEventListener("input", (e) => { speedDisplay.textContent = e.target.value + " Sn"; });
+
+document.getElementById("settingsBtn").addEventListener("click", () => {
   document.getElementById("adminDuyuru").value = sysConfigData.announcement || "";
   document.getElementById("adminShowChampions").checked = sysConfigData.showChampions;
-  document.getElementById("adminMarqueeSpeed").value = sysConfigData.marqueeSpeed || 40;
-  
+  speedSlider.value = sysConfigData.marqueeSpeed || 40;
+  speedDisplay.textContent = speedSlider.value + " Sn";
   settingsModal.style.display = "flex";
 });
 
 document.getElementById("closeModalBtn").addEventListener("click", () => { settingsModal.style.display = "none"; });
 
 document.getElementById("saveSettingsBtn").addEventListener("click", () => {
-  const newRoles = {
-    admin: { name: document.getElementById("adminName").value.trim() },
-    evrakci: { name: document.getElementById("evrakciName").value.trim() },
-    guncelleme: { name: document.getElementById("guncellemeName").value.trim() },
-    yazici: { name: document.getElementById("yaziciName").value.trim() }
-  };
-
   const newSysConfig = {
     announcement: document.getElementById("adminDuyuru").value.trim(),
     showChampions: document.getElementById("adminShowChampions").checked,
-    marqueeSpeed: parseInt(document.getElementById("adminMarqueeSpeed").value) || 40
+    marqueeSpeed: parseInt(speedSlider.value) || 40
   };
-
-  Promise.all([
-    set(ref(database, 'Evrak-V4/settings/roles'), newRoles),
-    set(ref(database, 'Evrak-V4/settings/systemConfig'), newSysConfig)
-  ]).then(() => {
-    alert("Tüm ayarlar başarıyla güncellendi!");
-    settingsModal.style.display = "none";
-  }).catch((error) => alert("Yetkiniz yok veya hata oluştu: " + error));
+  set(ref(database, 'Evrak-V4/settings/systemConfig'), newSysConfig)
+  .then(() => { alert("Ayarlar başarıyla güncellendi!"); settingsModal.style.display = "none"; })
+  .catch((error) => alert("Hata oluştu: " + error));
 });
 
 const historyModal = document.getElementById("historyModal");
 const historyDateInput = document.getElementById("historyDate");
+const historyMonthInput = document.getElementById("historyMonth");
 const historyResultsDiv = document.getElementById("historyResults");
 const showZerosCb = document.getElementById("showZerosCb");
 const sortSelect = document.getElementById("sortSelect");
 const groupFilterSelect = document.getElementById("groupFilterSelect");
+const queryTypeSelect = document.getElementById("queryTypeSelect");
+const dailyInputGroup = document.getElementById("dailyInputGroup");
+const monthlyInputGroup = document.getElementById("monthlyInputGroup");
 
 document.getElementById("historyBtn").addEventListener("click", () => {
-  historyModal.style.display = "flex"; historyDateInput.value = ""; currentHistoryData = null;
+  historyModal.style.display = "flex"; 
+  historyDateInput.value = ""; historyMonthInput.value = ""; currentHistoryData = null;
   showZerosCb.checked = false; sortSelect.value = "default"; groupFilterSelect.value = "all";
-  historyResultsDiv.innerHTML = "<p style='text-align:center; color:#94a3b8; font-size:14px; margin-top:50px;'>Lütfen sol taraftaki menüden sorgulamak istediğiniz tarihi seçiniz.</p>";
+  queryTypeSelect.value = "daily";
+  dailyInputGroup.style.display = "block"; monthlyInputGroup.style.display = "none";
+  historyResultsDiv.innerHTML = "<p style='text-align:center; color:#94a3b8; font-size:14px; margin-top:50px;'>Lütfen sol taraftaki menüden sorgulama yapınız.</p>";
 });
 
 document.getElementById("closeHistoryBtn").addEventListener("click", () => { historyModal.style.display = "none"; });
 
+queryTypeSelect.addEventListener("change", (e) => {
+  if (e.target.value === "daily") { dailyInputGroup.style.display = "block"; monthlyInputGroup.style.display = "none"; } 
+  else { dailyInputGroup.style.display = "none"; monthlyInputGroup.style.display = "block"; }
+  currentHistoryData = null;
+  historyResultsDiv.innerHTML = "<p style='text-align:center; color:#94a3b8; font-size:14px; margin-top:50px;'>Lütfen sol taraftaki menüden sorgulama yapınız.</p>";
+});
+
 historyDateInput.addEventListener("change", fetchHistoryData);
+historyMonthInput.addEventListener("change", fetchHistoryData);
 showZerosCb.addEventListener("change", renderHistoryList);
 sortSelect.addEventListener("change", renderHistoryList);
 groupFilterSelect.addEventListener("change", renderHistoryList);
 
-function fetchHistoryData(e) {
-  const selectedDate = e.target.value; 
-  if (!selectedDate) return;
+function fetchHistoryData() {
+  const isMonthly = queryTypeSelect.value === "monthly";
   historyResultsDiv.innerHTML = "<p style='text-align:center; color:#38bdf8; margin-top:50px;'>Veriler getiriliyor...</p>";
 
-  get(ref(database, `Evrak-V4/kayitlar/${selectedDate}/counters`)).then((snap) => {
-    currentHistoryData = snap.val(); renderHistoryList();
-  }).catch((error) => {
-    historyResultsDiv.innerHTML = "<p style='color:#ef4444; text-align:center; margin-top:50px;'>Hata oluştu: " + error + "</p>";
-  });
+  if (!isMonthly) {
+    const selectedDate = historyDateInput.value; 
+    if (!selectedDate) return;
+    get(ref(database, `Evrak-V4/kayitlar/${selectedDate}/counters`)).then((snap) => {
+      currentHistoryData = snap.val(); renderHistoryList();
+    }).catch(e => { historyResultsDiv.innerHTML = "<p style='color:#ef4444;text-align:center;margin-top:50px;'>Hata oluştu.</p>"; });
+  } else {
+    const monthVal = historyMonthInput.value; 
+    if (!monthVal) return;
+    const start = `${monthVal}-01`;
+    const end = `${monthVal}-31`;
+    get(query(ref(database, 'Evrak-V4/kayitlar'), orderByKey(), startAt(start), endAt(end))).then((snap) => {
+      let monthlySums = {};
+      snap.forEach(childSnap => {
+        const dailyCounters = childSnap.val().counters || {};
+        for(let i=0; i<22; i++) { monthlySums[i] = (monthlySums[i] || 0) + (dailyCounters[i] || 0); }
+      });
+      currentHistoryData = Object.keys(monthlySums).length > 0 ? monthlySums : null;
+      renderHistoryList();
+    }).catch(e => { historyResultsDiv.innerHTML = "<p style='color:#ef4444;text-align:center;margin-top:50px;'>Hata oluştu.</p>"; });
+  }
 }
 
 function renderHistoryList() {
   if (!currentHistoryData) {
-    if(historyDateInput.value) historyResultsDiv.innerHTML = "<p style='text-align:center; color:#ef4444; margin-top:50px;'>Seçili tarihe ait geçmiş kayıt bulunamadı.</p>";
+    historyResultsDiv.innerHTML = "<p style='text-align:center; color:#ef4444; margin-top:50px;'>Seçili kritere ait geçmiş kayıt bulunamadı.</p>";
     return;
   }
   const showZeros = showZerosCb.checked; const sortOrder = sortSelect.value; const groupFilter = groupFilterSelect.value;
