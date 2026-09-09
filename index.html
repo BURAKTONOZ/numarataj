@@ -277,10 +277,10 @@ const names = [
 ];
 
 const ROLE_NAMES = {
-  'yonetici@sistem.com': 'Yönetici',
-  'evrakci@sistem.com': 'Evrak Giriş',
-  'guncelleme@sistem.com': 'Güncelleme',
-  'tetkik@sistem.com': 'Tetkik Personeli'
+  'yonetici@sistem.com': 'YÖNETİCİ',
+  'evrakci@sistem.com': 'EVRAK GİRİŞ',
+  'guncelleme@sistem.com': 'GÜNCELLEME',
+  'tetkik@sistem.com': 'TETKİK'
 };
 
 let currentUserEmail = null; 
@@ -346,6 +346,18 @@ function initializeUIForUser() {
     document.documentElement.style.setProperty('--marquee-speed', (sysConfigData.marqueeSpeed || 40) + 's');
     updateMarqueeDisplay(); 
   }));
+
+  const rolesRef = ref(database, 'Evrak-V4/settings/roles'); 
+  get(rolesRef).then((snapshot) => {
+    if (!snapshot.exists()) {
+      set(rolesRef, {
+        admin: { name: "YÖNETİCİ" },
+        evrakci: { name: "EVRAK GİRİŞ" },
+        guncelleme: { name: "GÜNCELLEME" },
+        yazici: { name: "TETKİK" }
+      });
+    }
+  });
 
   get(ref(database, `Evrak-V4/kayitlar/${yesterdayStr}/counters`)).then((snap) => {
     const data = snap.val();
