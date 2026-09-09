@@ -6,11 +6,14 @@
 <title>Evrak Dağıtım Sistemi - V4</title>
 
 <style>
+/* GENEL AYARLAR VE TEMA */
 :root { --x: 0; --y: 0; --xp: 0; --yp: 0; --marquee-speed: 40s; }
 body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #161618; color: white; min-height: 100vh; overflow-x: hidden; }
 
+/* --- KINETIC GRID (HAREKETLİ ARKA PLAN) --- */
 #kineticCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
 
+/* --- GİRİŞ EKRANI (CAM TASARIM) --- */
 #loginScreen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: transparent; }
 .login-box { background: rgba(30, 41, 59, 0.25); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); width: 100%; max-width: 350px; z-index: 10; }
 .login-box h2 { margin-top: 0; margin-bottom: 20px; color: #38bdf8; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
@@ -20,6 +23,7 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 .login-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: rgba(14, 165, 233, 0.8); color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px); border: 1px solid rgba(14, 165, 233, 0.5); }
 .login-btn:hover { background: rgba(2, 132, 199, 0.9); box-shadow: 0 0 15px rgba(14, 165, 233, 0.4); }
 
+/* --- ANA UYGULAMA & HEADER --- */
 #mainApp { display: none; }
 .app-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 100; }
 .header-left h2 { margin: 0; font-size: 20px; background: linear-gradient(to right, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -36,10 +40,12 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 .settings-btn { background: #f59e0b; display: none; } .settings-btn:hover { background: #d97706; }
 .history-btn { background: #8b5cf6; display: none; } .history-btn:hover { background: #7c3aed; }
 
+/* --- KAYAN YAZI --- */
 .marquee-container { width: 100%; overflow: hidden; background: rgba(0, 0, 0, 0.4); padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 .marquee { display: inline-block; white-space: nowrap; animation: scroll var(--marquee-speed) linear infinite; color: #fbbf24; font-size: 15px; font-weight: bold; letter-spacing: 1px; }
 @keyframes scroll { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
 
+/* --- MODALLAR --- */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; }
 .modal-content { background: #1e293b; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 .modal-content.history-modal-content { max-width: 900px; }
@@ -52,6 +58,7 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 .save-btn { background: #10b981; } .save-btn:hover { background: #059669; }
 
+/* GEÇMİŞ LİSTESİ */
 .history-layout { display: flex; gap: 20px; margin-top: 15px; }
 .history-controls { flex: 1; min-width: 280px; display: flex; flex-direction: column; }
 .history-controls .setting-group { padding: 12px; margin-bottom: 12px; }
@@ -69,6 +76,7 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 
 @media (max-width: 768px) { .history-layout { flex-direction: column; } .history-controls { min-width: 100%; } }
 
+/* --- GLOW CARD --- */
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; padding: 40px; }
 .glow-card { --base: 220; --spread: 200; --radius: 16; --border: 2; --border-size: calc(var(--border) * 1px); --spotlight-size: 250px; --hue: calc(var(--base) + (var(--xp, 0) * var(--spread, 0))); position: relative; background-color: rgba(255, 255, 255, 0.03); border-radius: calc(var(--radius) * 1px); border: var(--border-size) solid transparent; padding: 25px; display: flex; flex-direction: column; box-shadow: 0 1rem 2rem -1rem black; backdrop-filter: blur(5px); transition: transform 0.2s; }
 .glow-card:hover { transform: translateY(-5px); }
@@ -158,23 +166,6 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
       <p style="font-size:12px; color:#94a3b8; margin-top:5px;">Değer küçüldükçe yazı hızlanır (Varsayılan: 40).</p>
     </div>
 
-    <div class="setting-group">
-      <h4>YÖNETİCİ Grubu Görünen Adı</h4>
-      <input type="text" id="adminName" placeholder="Grup Adı">
-    </div>
-    <div class="setting-group">
-      <h4>EVRAKÇI Grubu Görünen Adı</h4>
-      <input type="text" id="evrakciName" placeholder="Grup Adı">
-    </div>
-    <div class="setting-group">
-      <h4>GÜNCELLEME Grubu Görünen Adı</h4>
-      <input type="text" id="guncellemeName" placeholder="Grup Adı">
-    </div>
-    <div class="setting-group">
-      <h4>TETKİK Grubu Görünen Adı</h4>
-      <input type="text" id="yaziciName" placeholder="Grup Adı">
-    </div>
-
     <div class="modal-actions">
       <button class="action-btn logout-btn" id="closeModalBtn">İptal</button>
       <button class="action-btn save-btn" id="saveSettingsBtn">Kaydet</button>
@@ -225,7 +216,7 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
   </div>
 </div>
 
-<!-- KINETIC GRID JS -->
+<!-- KINETIC GRID (HAREKETLİ ARKA PLAN) JS -->
 <script>
   const canvas = document.getElementById('kineticCanvas');
   const ctx = canvas.getContext('2d');
@@ -276,8 +267,14 @@ const names = [
   "21-Güncelleme Emine HÜSÜNSEVER", "22-Güncelleme Hadi TÜRK"
 ];
 
+const ROLE_NAMES = {
+  'yonetici@sistem.com': 'YÖNETİCİ',
+  'evrakci@sistem.com': 'EVRAK GİRİŞ',
+  'guncelleme@sistem.com': 'GÜNCELLEME',
+  'tetkik@sistem.com': 'TETKİK'
+};
+
 let currentUserEmail = null; 
-let rolesData = {};
 let sysConfigData = { announcement: "", showChampions: true, marqueeSpeed: 40 };
 let currentHistoryData = null; 
 let championsTextRaw = ""; 
@@ -319,22 +316,7 @@ onAuthStateChanged(auth, (user) => {
 });
 
 function loadApplicationData() {
-  const rolesRef = ref(database, 'Evrak-V4/settings/roles'); 
-  onValue(rolesRef, (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      rolesData = data;
-    } else {
-      rolesData = {
-        admin: { name: "YÖNETİCİ" },
-        evrakci: { name: "EVRAK GİRİŞ VE GÜNCELLEME PERSONELİ" },
-        guncelleme: { name: "GÜNCELLEME PERSONELİ" },
-        yazici: { name: "TETKİK PERSONELİ" }
-      };
-      set(rolesRef, rolesData);
-    }
-    updateRoleUI();
-  });
+  updateRoleUI();
 
   const sysConfigRef = ref(database, 'Evrak-V4/settings/systemConfig');
   onValue(sysConfigRef, (snapshot) => {
@@ -412,20 +394,11 @@ function updateRoleUI() {
   const settingsBtn = document.getElementById("settingsBtn");
   const historyBtn = document.getElementById("historyBtn");
 
+  document.getElementById("roleText").innerText = ROLE_NAMES[currentUserEmail] || "KULLANICI";
+
   if (currentUserEmail === 'yonetici@sistem.com') {
-    document.getElementById("roleText").innerText = rolesData.admin?.name || "YÖNETİCİ";
     resetBtn.style.display = 'inline-block'; settingsBtn.style.display = 'inline-block'; historyBtn.style.display = 'inline-block';
-  } 
-  else if (currentUserEmail === 'evrakci@sistem.com') {
-    document.getElementById("roleText").innerText = rolesData.evrakci?.name || "EVRAK GİRİŞ";
-    resetBtn.style.display = 'none'; settingsBtn.style.display = 'none'; historyBtn.style.display = 'none';
-  }
-  else if (currentUserEmail === 'guncelleme@sistem.com') {
-    document.getElementById("roleText").innerText = rolesData.guncelleme?.name || "GÜNCELLEME";
-    resetBtn.style.display = 'none'; settingsBtn.style.display = 'none'; historyBtn.style.display = 'none';
-  }
-  else if (currentUserEmail === 'tetkik@sistem.com') {
-    document.getElementById("roleText").innerText = rolesData.yazici?.name || "TETKİK";
+  } else {
     resetBtn.style.display = 'none'; settingsBtn.style.display = 'none'; historyBtn.style.display = 'none';
   }
   updateCardsVisibility();
@@ -561,38 +534,23 @@ document.getElementById("resetBtn").addEventListener("click", () => {
 
 const settingsModal = document.getElementById("settingsModal");
 document.getElementById("settingsBtn").addEventListener("click", () => {
-  document.getElementById("adminName").value = rolesData.admin?.name || "";
-  document.getElementById("evrakciName").value = rolesData.evrakci?.name || ""; 
-  document.getElementById("guncellemeName").value = rolesData.guncelleme?.name || ""; 
-  document.getElementById("yaziciName").value = rolesData.yazici?.name || ""; 
-
   document.getElementById("adminDuyuru").value = sysConfigData.announcement || "";
   document.getElementById("adminShowChampions").checked = sysConfigData.showChampions;
   document.getElementById("adminMarqueeSpeed").value = sysConfigData.marqueeSpeed || 40;
-  
   settingsModal.style.display = "flex";
 });
 
 document.getElementById("closeModalBtn").addEventListener("click", () => { settingsModal.style.display = "none"; });
 
 document.getElementById("saveSettingsBtn").addEventListener("click", () => {
-  const newRoles = {
-    admin: { name: document.getElementById("adminName").value.trim() },
-    evrakci: { name: document.getElementById("evrakciName").value.trim() },
-    guncelleme: { name: document.getElementById("guncellemeName").value.trim() },
-    yazici: { name: document.getElementById("yaziciName").value.trim() }
-  };
-
   const newSysConfig = {
     announcement: document.getElementById("adminDuyuru").value.trim(),
     showChampions: document.getElementById("adminShowChampions").checked,
     marqueeSpeed: parseInt(document.getElementById("adminMarqueeSpeed").value) || 40
   };
 
-  Promise.all([
-    set(ref(database, 'Evrak-V4/settings/roles'), newRoles),
-    set(ref(database, 'Evrak-V4/settings/systemConfig'), newSysConfig)
-  ]).then(() => {
+  set(ref(database, 'Evrak-V4/settings/systemConfig'), newSysConfig)
+  .then(() => {
     alert("Tüm ayarlar başarıyla güncellendi!");
     settingsModal.style.display = "none";
   }).catch((error) => alert("Hata oluştu: " + error));
