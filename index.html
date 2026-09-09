@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evrak Dağıtım Sistemi - V4</title>
+
+<style>
+:root { --x: 0; --y: 0; --xp: 0; --yp: 0; --marquee-speed: 40s; }
+body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #161618; color: white; min-height: 100vh; overflow-x: hidden; }
+
+#kineticCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
+
+#loginScreen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: transparent; }
+.login-box { background: rgba(30, 41, 59, 0.25); padding: 40px; border-radius: 20px; text-align: center; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); width: 100%; max-width: 350px; z-index: 10; }
+.login-box h2 { margin-top: 0; margin-bottom: 20px; color: #38bdf8; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+.login-box select, .login-box input { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.4); color: white; font-size: 16px; margin-bottom: 20px; outline: none; backdrop-filter: blur(5px); box-sizing: border-box; }
+.login-box select option { background: #1e293b; color: white; }
+.login-box select:focus, .login-box input:focus { border-color: #38bdf8; background: rgba(0,0,0,0.6); }
+.login-btn { width: 100%; padding: 12px; border: none; border-radius: 8px; background: rgba(14, 165, 233, 0.8); color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px); border: 1px solid rgba(14, 165, 233, 0.5); }
+.login-btn:hover { background: rgba(2, 132, 199, 0.9); box-shadow: 0 0 15px rgba(14, 165, 233, 0.4); }
+
+#mainApp { display: none; }
+.app-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 100; }
+.header-left h2 { margin: 0; font-size: 20px; background: linear-gradient(to right, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header-date { font-size: 13px; color: #94a3b8; margin-top: 5px; font-weight: 500; letter-spacing: 0.5px; }
+.header-center { display: flex; gap: 20px; }
+.stat-box { background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 12px; font-size: 15px; border: 1px solid rgba(255,255,255,0.1); }
+.stat-box strong { font-size: 18px; color: #38bdf8; margin-left: 5px; }
+.header-right { display: flex; align-items: center; gap: 15px; }
+.role-badge-text { font-size: 14px; color: #cbd5e1; }
+.role-badge-text strong { color: #34d399; }
+.action-btn { border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; color: white; }
+.logout-btn { background: #64748b; } .logout-btn:hover { background: #475569; }
+.reset-btn { background: #ef4444; display: none; } .reset-btn:hover { background: #dc2626; }
+.settings-btn { background: #f59e0b; display: none; } .settings-btn:hover { background: #d97706; }
+.history-btn { background: #8b5cf6; display: none; } .history-btn:hover { background: #7c3aed; }
+
+.marquee-container { width: 100%; overflow: hidden; background: rgba(0, 0, 0, 0.4); padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.marquee { display: inline-block; white-space: nowrap; animation: scroll var(--marquee-speed) linear infinite; color: #fbbf24; font-size: 15px; font-weight: bold; letter-spacing: 1px; }
+@keyframes scroll { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; }
+.modal-content { background: #1e293b; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.modal-content.history-modal-content { max-width: 900px; }
+.modal-content::-webkit-scrollbar { width: 6px; } .modal-content::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 4px; }
+.modal-content h3 { margin-top: 0; color: #38bdf8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+.setting-group { margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; }
+.setting-group h4 { margin: 0 0 10px 0; color: #94a3b8; font-size: 14px; }
+.setting-group input[type="text"], .setting-group input[type="number"], .setting-group input[type="date"], .setting-group select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; box-sizing: border-box; color-scheme: dark; outline: none; }
+.setting-group select option { background: #0f172a; } .setting-group select:focus, .setting-group input:focus { border-color: #38bdf8; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.save-btn { background: #10b981; } .save-btn:hover { background: #059669; }
+
+.history-layout { display: flex; gap: 20px; margin-top: 15px; }
+.history-controls { flex: 1; min-width: 280px; display: flex; flex-direction: column; }
+.history-controls .setting-group { padding: 12px; margin-bottom: 12px; }
+.history-results-container { flex: 2; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; }
+.history-results { flex-grow: 1; max-height: 380px; overflow-y: auto; padding-right: 10px; }
+.history-results::-webkit-scrollbar { width: 6px; } .history-results::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 4px; }
+.history-item { display: flex; justify-content: space-between; padding: 10px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; border-radius: 4px; }
+.history-item:hover { background: rgba(255,255,255,0.05); }
+.history-item strong { color: #38bdf8; font-size: 16px; }
+.history-item.gun-fark { border-left: 3px solid #8b5cf6; padding-left: 12px;}
+.history-totals { margin-top: 15px; padding-top: 15px; border-top: 2px dashed #38bdf8; display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; background: rgba(56, 189, 248, 0.05); padding: 15px; border-radius: 8px; }
+.history-totals div strong { color: #34d399; font-size: 18px; margin-left: 5px;}
+.filter-label { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; color: #cbd5e1; }
+.filter-label input { width: 18px; height: 18px; cursor: pointer; accent-color: #38bdf8;}
+
+@media (max-width: 768px) { .history-layout { flex-direction: column; } .history-controls { min-width: 100%; } }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; padding: 40px; }
+.glow-card { --base: 220; --spread: 200; --radius: 16; --border: 2; --border-size: calc(var(--border) * 1px); --spotlight-size: 250px; --hue: calc(var(--base) + (var(--xp, 0) * var(--spread, 0))); position: relative; background-color: rgba(255, 255, 255, 0.03); border-radius: calc(var(--radius) * 1px); border: var(--border-size) solid transparent; padding: 25px; display: flex; flex-direction: column; box-shadow: 0 1rem 2rem -1rem black; backdrop-filter: blur(5px); transition: transform 0.2s; }
+.glow-card:hover { transform: translateY(-5px); }
+.extra-person { --base: 280; }
+.glow-card::before, .glow-card::after { content: ""; position: absolute; inset: calc(var(--border-size) * -1); border: var(--border-size) solid transparent; border-radius: calc(var(--radius) * 1px); background-attachment: fixed; pointer-events: none; -webkit-mask: linear-gradient(white, white) padding-box, linear-gradient(white, white) border-box; -webkit-mask-composite: destination-out; mask-composite: exclude; z-index: 1; }
+.glow-card::before { background-image: radial-gradient(calc(var(--spotlight-size) * 0.75) calc(var(--spotlight-size) * 0.75) at calc(var(--x, 0) * 1px) calc(var(--y, 0) * 1px), hsl(var(--hue, 210) 100% 60% / 1), transparent 100%); filter: brightness(2); }
+.glow-card::after { background-image: radial-gradient(calc(var(--spotlight-size) * 0.4) calc(var(--spotlight-size) * 0.4) at calc(var(--x, 0) * 1px) calc(var(--y, 0) * 1px), hsl(0 100% 100% / 0.8), transparent 100%); }
+.card-inner-glow { position: absolute; inset: 0; border-radius: calc(var(--radius) * 1px); background-attachment: fixed; background-image: radial-gradient(var(--spotlight-size) var(--spotlight-size) at calc(var(--x, 0) * 1px) calc(var(--y, 0) * 1px), hsl(var(--hue, 210) 100% 70% / 0.08), transparent 100%); pointer-events: none; z-index: 0; }
+.card-content { position: relative; z-index: 2; display: flex; flex-direction: column; height: 100%; }
+.card-top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; margin-bottom: 20px; }
+.card-title { font-size: 18px; font-weight: 700; color: #f8fafc; line-height: 1.3; flex: 1; text-align: left; }
+.status-badge { padding: 5px 12px; border-radius: 12px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; transition: 0.3s; user-select: none; white-space: nowrap; }
+.open { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+.closed { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+.status-badge.admin-hover:hover { transform: scale(1.05); box-shadow: 0 0 10px rgba(255,255,255,0.2); }
+.counter { font-size: 46px; font-weight: bold; margin: 10px 0 20px 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5); flex-grow: 1; text-align: center; }
+.btn { padding: 12px; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 15px; width: 100%; }
+.btn:not(.disabled):hover { background: rgba(255, 255, 255, 0.2); border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+.btn.disabled { background: rgba(0,0,0,0.2); color: #64748b; border-color: rgba(255,255,255,0.05); cursor: not-allowed; }
+
+@media (max-width: 900px) { .app-header { flex-direction: column; gap: 15px; padding: 15px; } .header-left { text-align: center; } .header-center { width: 100%; justify-content: center; gap: 10px; flex-wrap: wrap;} .header-right { width: 100%; justify-content: center; flex-wrap: wrap;} .grid { padding: 15px; gap: 15px; } }
+</style>
+</head>
+<body>
+
+<canvas id="kineticCanvas"></canvas>
+
+<!-- GİRİŞ EKRANI -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h2>Sisteme Giriş</h2>
+    <select id="loginUserSelect">
+      <option value="yonetici">YÖNETİCİ</option>
+      <option value="evrakci">EVRAK GİRİŞ</option>
+      <option value="guncelleme">GÜNCELLEME</option>
+      <option value="tetkik">TETKİK</option>
+    </select>
+    <input type="password" id="loginPass" placeholder="Şifre">
+    <button class="login-btn" id="loginBtn">Giriş Yap</button>
+  </div>
+</div>
+
+<!-- ANA UYGULAMA -->
+<div id="mainApp">
+  <header class="app-header">
+    <div class="header-left">
+      <h2>Evrak Dağıtım Sistemi <span style="font-size:12px; color:#8b5cf6;">(V4)</span></h2>
+      <div id="todayDateDisplay" class="header-date">Tarih Bekleniyor...</div>
+    </div>
+    <div class="header-center">
+      <div class="stat-box">Evrak: <strong id="mainCounter">0</strong></div>
+      <div class="stat-box">Güncelleme: <strong id="extraCounter">0</strong></div>
+    </div>
+    <div class="header-right">
+      <span class="role-badge-text">Giriş: <strong id="roleText"></strong></span>
+      <button class="action-btn history-btn" id="historyBtn">📅 Geçmiş Kayıtlar</button>
+      <button class="action-btn settings-btn" id="settingsBtn">⚙ Ayarlar</button>
+      <button class="action-btn reset-btn" id="resetBtn">Bugünü Sıfırla</button>
+      <button class="action-btn logout-btn" id="logoutBtn">Çıkış Yap</button>
+    </div>
+  </header>
+
+  <div class="marquee-container">
+    <div class="marquee" id="winnersMarquee">Sistem Yükleniyor...</div>
+  </div>
+
+  <div class="grid" id="buttonContainer"></div>
+</div>
+
+<!-- AYARLAR MODALI -->
+<div id="settingsModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3>⚙ Sistem ve Duyuru Ayarları</h3>
+    <div style="font-size:13px; color:#94a3b8; margin-bottom:15px;">Şifre değişikliği işlemleri yalnızca Firebase Console üzerinden yapılabilir.</div>
+    
+    <div class="setting-group" style="border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05);">
+      <h4 style="color: #f87171;">Sistem Duyurusu</h4>
+      <input type="text" id="adminDuyuru" placeholder="Tüm personele gösterilecek duyuru mesajı">
+      <label class="filter-label" style="margin-top: 15px; color: #fbbf24;">
+        <input type="checkbox" id="adminShowChampions"> Kayan yazıda bir önceki günün şampiyonlarını göster
+      </label>
+    </div>
+
+    <div class="setting-group">
+      <h4>Kayan Yazı Hızı (Saniye)</h4>
+      <input type="number" id="adminMarqueeSpeed" min="10" max="120" placeholder="Örn: 40">
+      <p style="font-size:12px; color:#94a3b8; margin-top:5px;">Değer küçüldükçe yazı hızlanır (Varsayılan: 40).</p>
+    </div>
+
+    <div class="setting-group">
+      <h4>YÖNETİCİ Grubu Görünen Adı</h4>
+      <input type="text" id="adminName" placeholder="Grup Adı">
+    </div>
+    <div class="setting-group">
+      <h4>EVRAKÇI Grubu Görünen Adı</h4>
+      <input type="text" id="evrakciName" placeholder="Grup Adı">
+    </div>
+    <div class="setting-group">
+      <h4>GÜNCELLEME Grubu Görünen Adı</h4>
+      <input type="text" id="guncellemeName" placeholder="Grup Adı">
+    </div>
+    <div class="setting-group">
+      <h4>TETKİK Grubu Görünen Adı</h4>
+      <input type="text" id="yaziciName" placeholder="Grup Adı">
+    </div>
+
+    <div class="modal-actions">
+      <button class="action-btn logout-btn" id="closeModalBtn">İptal</button>
+      <button class="action-btn save-btn" id="saveSettingsBtn">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- GEÇMİŞ KAYITLAR MODALI -->
+<div id="historyModal" class="modal-overlay">
+  <div class="modal-content history-modal-content">
+    <h3>📅 Geçmiş Tarihli Kayıtlar</h3>
+    <div class="history-layout">
+      <div class="history-controls">
+        <div class="setting-group">
+          <h4>Sorgulanacak Tarih</h4>
+          <input type="date" id="historyDate">
+        </div>
+        <div class="setting-group">
+          <h4>Sıfır Yapanlar</h4>
+          <label class="filter-label"><input type="checkbox" id="showZerosCb"> Sıfır olanları da listede göster</label>
+        </div>
+        <div class="setting-group">
+          <h4>Sıralama Ölçütü</h4>
+          <select id="sortSelect">
+            <option value="default" selected>Varsayılan Liste Sırası</option>
+            <option value="desc">En Çok Yapana Göre (Azalan)</option>
+            <option value="asc">En Az Yapana Göre (Artan)</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <h4>Grup Filtresi</h4>
+          <select id="groupFilterSelect">
+            <option value="all" selected>Tüm Personelleri Göster</option>
+            <option value="evrak">Sadece Evrakçılar</option>
+            <option value="guncelleme">Sadece Güncelleme</option>
+          </select>
+        </div>
+      </div>
+      <div class="history-results-container">
+        <div id="historyResults" class="history-results">
+          <p style="text-align:center; color:#94a3b8; font-size:14px; margin-top:50px;">Lütfen sol taraftaki menüden sorgulamak istediğiniz tarihi seçiniz.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="action-btn logout-btn" id="closeHistoryBtn">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- KINETIC GRID JS -->
+<script>
+  const canvas = document.getElementById('kineticCanvas');
+  const ctx = canvas.getContext('2d');
+  const CELL_SIZE = 55; const INFLUENCE_RADIUS = 260; const MAX_WARP = 24; const DOT_SPACING = 28; const LERP_SPEED = 0.08;
+  const LINE_BASE = { r: 255, g: 255, b: 255, a: 0.13 }; const NODE_BASE_RADIUS = 1.8; const NODE_ACTIVE_RADIUS = 3.2;
+  const theme = { bg: "#161618", lineActive: { r: 74, g: 158, b: 255, a: 0.9 }, nodeActive: { r: 74, g: 158, b: 255, a: 1.0 }, glow: "74,158,255", ripple: "100,180,255" };
+  let mouse = { x: -9999, y: -9999 }; let targetMouse = { x: -9999, y: -9999 }; let ripples = []; let w = 0, h = 0;
+  function lerpN(a, b, t) { return a + (b - a) * t; }
+  function lerpColor(base, active, t) { const r = Math.round(lerpN(base.r, active.r, t)); const g = Math.round(lerpN(base.g, active.g, t)); const b = Math.round(lerpN(base.b, active.b, t)); const a = lerpN(base.a, active.a, t); return `rgba(${r},${g},${b},${a.toFixed(3)})`; }
+  function getWarpedPoint(gx, gy, col, row, cols, rows) { const edgeMargin = 1.5; const colPin = Math.min(col / edgeMargin, (cols - 1 - col) / edgeMargin, 1); const rowPin = Math.min(row / edgeMargin, (rows - 1 - row) / edgeMargin, 1); const pinFactor = colPin * colPin * rowPin * rowPin; const dx = gx - mouse.x; const dy = gy - mouse.y; const dist = Math.sqrt(dx * dx + dy * dy); const proximity = Math.max(0, 1 - dist / INFLUENCE_RADIUS) * pinFactor; let rx = 0, ry = 0; for (const r of ripples) { const rdx = gx - r.x; const rdy = gy - r.y; const rdist = Math.sqrt(rdx * rdx + rdy * rdy); const waveWidth = 55; const diff = rdist - r.radius; if (Math.abs(diff) < waveWidth) { const strength = (1 - Math.abs(diff) / waveWidth) * r.opacity * 18 * pinFactor; const angle = Math.atan2(rdy, rdx); const sign = diff < 0 ? -1 : 1; rx += Math.cos(angle) * strength * sign * -1; ry += Math.sin(angle) * strength * sign * -1; } } if (dist < INFLUENCE_RADIUS && dist > 0 && pinFactor > 0) { const t = dist / INFLUENCE_RADIUS; const eased = t < 0.01 ? 0 : (1 - t) * (1 - t) * Math.min(1, dist / 60); const warpAmt = eased * MAX_WARP * pinFactor; const angle = Math.atan2(dy, dx); return { pt: { x: gx - Math.cos(angle) * warpAmt + rx, y: gy - Math.sin(angle) * warpAmt + ry }, proximity }; } return { pt: { x: gx + rx, y: gy + ry }, proximity }; }
+  function resize() { w = window.innerWidth; h = window.innerHeight; canvas.width = w; canvas.height = h; }
+  function draw(now) { ctx.clearRect(0, 0, w, h); ctx.fillStyle = theme.bg; ctx.fillRect(0, 0, w, h); ctx.fillStyle = "rgba(255,255,255,0.05)"; for (let x = DOT_SPACING / 2; x < w; x += DOT_SPACING) { for (let y = DOT_SPACING / 2; y < h; y += DOT_SPACING) { ctx.beginPath(); ctx.arc(x, y, 0.7, 0, Math.PI * 2); ctx.fill(); } } for (let i = ripples.length - 1; i >= 0; i--) { const r = ripples[i]; const age = (now - r.born) / 1000; r.radius = Math.max(0, age * 400); r.opacity = Math.max(0, 1 - age * 1.2); if (r.opacity <= 0) ripples.splice(i, 1); } const cols = Math.max(2, Math.ceil(w / CELL_SIZE)) + 1; const rows = Math.max(2, Math.ceil(h / CELL_SIZE)) + 1; const cellW = w / (cols - 1); const cellH = h / (rows - 1); const pts = []; const prox = []; for (let row = 0; row < rows; row++) { pts[row] = []; prox[row] = []; for (let col = 0; col < cols; col++) { const { pt, proximity } = getWarpedPoint(col * cellW, row * cellH, col, row, cols, rows); pts[row][col] = pt; prox[row][col] = proximity; } } const drawSeg = (p1, p2, pr1, pr2) => { const avg = (pr1 + pr2) / 2; const t = avg * avg * (3 - 2 * avg); ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.strokeStyle = lerpColor(LINE_BASE, theme.lineActive, t); ctx.lineWidth = lerpN(0.8, 1.5, t); ctx.stroke(); }; ctx.lineCap = "butt"; for (let row = 0; row < rows; row++) for (let col = 0; col < cols - 1; col++) drawSeg(pts[row][col], pts[row][col + 1], prox[row][col], prox[row][col + 1]); for (let col = 0; col < cols; col++) for (let row = 0; row < rows - 1; row++) drawSeg(pts[row][col], pts[row + 1][col], prox[row][col], prox[row + 1][col]); for (let row = 0; row < rows; row++) { for (let col = 0; col < cols; col++) { const p = pts[row][col]; const pr = prox[row][col]; const t = pr * pr * (3 - 2 * pr); const r = lerpN(NODE_BASE_RADIUS, NODE_ACTIVE_RADIUS, t); if (t > 0.3) { const glowR = r + lerpN(0, 6, (t - 0.3) / 0.7); const grd = ctx.createRadialGradient(p.x, p.y, r * 0.5, p.x, p.y, glowR); grd.addColorStop(0, `rgba(${theme.glow},${(t * 0.3).toFixed(3)})`); grd.addColorStop(1, `rgba(${theme.glow},0)`); ctx.beginPath(); ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2); ctx.fillStyle = grd; ctx.fill(); } ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fillStyle = lerpColor({ r: 255, g: 255, b: 255, a: 0.2 }, theme.nodeActive, t); ctx.fill(); } } for (const r of ripples) { const safeRadius = Math.max(0, r.radius); ctx.beginPath(); ctx.arc(r.x, r.y, safeRadius, 0, Math.PI * 2); ctx.strokeStyle = `rgba(${theme.ripple},${(r.opacity * 0.28).toFixed(3)})`; ctx.lineWidth = 1.5; ctx.stroke(); } }
+  function animate(now) { mouse.x = lerpN(mouse.x, targetMouse.x, LERP_SPEED); mouse.y = lerpN(mouse.y, targetMouse.y, LERP_SPEED); draw(now); requestAnimationFrame(animate); }
+  window.addEventListener('resize', resize); window.addEventListener('mousemove', (e) => { targetMouse = { x: e.clientX, y: e.clientY }; }); window.addEventListener('click', (e) => { ripples.push({ x: e.clientX, y: e.clientY, radius: 0, opacity: 1, born: performance.now() }); });
+  resize(); requestAnimationFrame(animate);
+</script>
+
+<!-- ========================================== -->
+<!-- 2) FIREBASE VE UYGULAMA MANTIĞI JS         -->
+<!-- ========================================== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getDatabase, ref, onValue, runTransaction, set, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB2hpISLeFf-0q__tcZ03NZVtKChkGhYoM",
+  authDomain: "evrakcilar.firebaseapp.com",
+  databaseURL: "https://evrakcilar-default-rtdb.firebaseio.com",
+  projectId: "evrakcilar",
+  storageBucket: "evrakcilar.firebasestorage.app",
+  messagingSenderId: "1027241207331",
+  appId: "1:1027241207331:web:4a4fb8db3db1b6b8b87396",
+  measurementId: "G-4R304LP4GR"
+};
+
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const auth = getAuth(app);
+
+const names = [
+  "1-Ali Burak TURAN", "2-İlkim TOPÇU", "3-Büşra BAL", "4-Batuhan DURMAZ",
+  "5-Büşra YILMAZEL", "6-Kaan TÜRK", "7-Fulya SEVİNDİ", "8-Selda KARTAL",
+  "9-Musa KARAÇOBAN", "10-Tuğba EROĞLU", "11-Sümeyye ŞİŞBACAK", "12-Dilara DURLANIK",
+  "13-Erdem ERGÜN", "14-Merve ALKAYA", "15-Şerife ARSLAN", "16-Feyzanur KAPTAN",
+  "17-İrem ALKAN",
+  "18-Güncelleme Halil KÖKSAL", "19-Güncelleme Denizcan KUNDAK", "20-Güncelleme Vedat KORKUTATA",
+  "21-Güncelleme Emine HÜSÜNSEVER", "22-Güncelleme Hadi TÜRK"
+];
+
+let currentUserEmail = null; 
+let rolesData = {};
+let sysConfigData = { announcement: "", showChampions: true, marqueeSpeed: 40 };
+let currentHistoryData = null; 
+let championsTextRaw = ""; 
+
+const container = document.getElementById("buttonContainer");
+const cardStates = []; 
+
+function getFormattedDate(dateObj) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const d = String(dateObj.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`; 
+}
+
+let todayObj = new Date();
+let todayStr = getFormattedDate(todayObj); 
+let yesterdayObj = new Date();
+yesterdayObj.setDate(yesterdayObj.getDate() - 1);
+let yesterdayStr = getFormattedDate(yesterdayObj);
+
+document.getElementById('todayDateDisplay').innerText = "Tarih: " + todayObj.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+setInterval(() => {
+  const checkTime = new Date();
+  if (getFormattedDate(checkTime) !== todayStr) location.reload(); 
+}, 60000); 
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUserEmail = user.email;
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("mainApp").style.display = "block";
+    loadApplicationData(); 
+  } else {
+    currentUserEmail = null;
+    document.getElementById("loginScreen").style.display = "flex";
+    document.getElementById("mainApp").style.display = "none";
+  }
+});
+
+function loadApplicationData() {
+  const rolesRef = ref(database, 'Evrak-V4/settings/roles'); 
+  onValue(rolesRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      rolesData = data;
+    } else {
+      rolesData = {
+        admin: { name: "YÖNETİCİ" },
+        evrakci: { name: "EVRAK GİRİŞ VE GÜNCELLEME PERSONELİ" },
+        guncelleme: { name: "GÜNCELLEME PERSONELİ" },
+        yazici: { name: "TETKİK PERSONELİ" }
+      };
+      set(rolesRef, rolesData);
+    }
+    updateRoleUI();
+  });
+
+  const sysConfigRef = ref(database, 'Evrak-V4/settings/systemConfig');
+  onValue(sysConfigRef, (snapshot) => {
+    if (snapshot.exists()) {
+      sysConfigData = snapshot.val();
+    } else {
+      sysConfigData = { announcement: "", showChampions: true, marqueeSpeed: 40 };
+      set(sysConfigRef, sysConfigData);
+    }
+    document.documentElement.style.setProperty('--marquee-speed', (sysConfigData.marqueeSpeed || 40) + 's');
+    updateMarqueeDisplay(); 
+  });
+
+  get(ref(database, `Evrak-V4/kayitlar/${yesterdayStr}/counters`)).then((snap) => {
+    const data = snap.val();
+    if(data) {
+      let maxEvrak = 0, evrakWinners = [];
+      let maxGuncelleme = 0, guncellemeWinners = [];
+      let totalActivity = 0; 
+      names.forEach((name, i) => {
+        let count = data[i] || 0;
+        totalActivity += count;
+        let cleanName = name.split('-')[1].trim(); 
+        if(i < 17) {
+          if(count > maxEvrak) { maxEvrak = count; evrakWinners = [cleanName]; }
+          else if(count === maxEvrak && count > 0) { evrakWinners.push(cleanName); }
+        } else {
+          cleanName = cleanName.replace('Güncelleme ', ''); 
+          if(count > maxGuncelleme) { maxGuncelleme = count; guncellemeWinners = [cleanName]; }
+          else if(count === maxGuncelleme && count > 0) { guncellemeWinners.push(cleanName); }
+        }
+      });
+      if (totalActivity === 0) {
+        championsTextRaw = "Bir önceki güne ait kayıt bulunmamaktadır.";
+      } else {
+        let evrakText = evrakWinners.length > 0 ? `🏆 EVRAK ŞAMPİYONU: ${evrakWinners.join(', ')} (${maxEvrak} Evrak)` : "🏆 Evrak: Kayıt Yok";
+        let guncellemeText = guncellemeWinners.length > 0 ? `⭐ GÜNCELLEME ŞAMPİYONU: ${guncellemeWinners.join(', ')} (${maxGuncelleme} Güncelleme)` : "⭐ Güncelleme: Kayıt Yok";
+        championsTextRaw = `BİR ÖNCEKİ GÜNÜN ŞAMPİYONLARI ➔   ${evrakText}   ✦✦✦   ${guncellemeText}`;
+      }
+    } else {
+      championsTextRaw = "Bir önceki güne ait kayıt bulunmamaktadır.";
+    }
+    updateMarqueeDisplay(); 
+  });
+
+  onValue(ref(database, `Evrak-V4/kayitlar/${todayStr}/counters`), (snapshot) => {
+    const data = snapshot.val() || {};
+    let mTotal = 0, eTotal = 0;
+    names.forEach((_, i) => {
+      const count = data[i] || 0;
+      if (i < 17) mTotal += count; else eTotal += count;
+      if (cardStates[i] && cardStates[i].counterSpan) cardStates[i].counterSpan.innerText = count;
+    });
+    document.getElementById("mainCounter").innerText = mTotal;
+    document.getElementById("extraCounter").innerText = eTotal;
+  });
+}
+
+function updateMarqueeDisplay() {
+  let finalText = "";
+  if (sysConfigData.announcement && sysConfigData.announcement.trim() !== "") {
+    finalText += `<span style="color:#ef4444;">🔴 YÖNETİCİ DUYURUSU: ${sysConfigData.announcement}</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`;
+  }
+  if (sysConfigData.showChampions) {
+    finalText += `<span style="color:#fbbf24;">${championsTextRaw}</span>`;
+  }
+  if (finalText === "") {
+    finalText = "<span style='color:#94a3b8;'>Sistem Aktif... Tüm personele iyi çalışmalar dileriz.</span>";
+  }
+  document.getElementById('winnersMarquee').innerHTML = finalText;
+}
+
+function updateRoleUI() {
+  const resetBtn = document.getElementById("resetBtn");
+  const settingsBtn = document.getElementById("settingsBtn");
+  const historyBtn = document.getElementById("historyBtn");
+
+  if (currentUserEmail === 'yonetici@sistem.com') {
+    document.getElementById("roleText").innerText = rolesData.admin?.name || "YÖNETİCİ";
+    resetBtn.style.display = 'inline-block'; settingsBtn.style.display = 'inline-block'; historyBtn.style.display = 'inline-block';
+  } 
+  else if (currentUserEmail === 'evrakci@sistem.com') {
+    document.getElementById("roleText").innerText = rolesData.evrakci?.name || "EVRAK GİRİŞ";
+    resetBtn.style.display = 'none'; settingsBtn.style.display = 'none'; historyBtn.style.display = 'none';
+  }
+  else if (currentUserEmail === 'guncelleme@sistem.com') {
+    document.getElementById("roleText").innerText = rolesData.guncelleme?.name || "GÜNCELLEME";
+    resetBtn.style.display = 'none'; settingsBtn.style.display = 'none'; historyBtn.style.display = 'none';
+  }
+  else if (currentUserEmail === 'tetkik@sistem.com') {
+    document.getElementById("roleText").innerText = rolesData.yazici?.name || "TETKİK";
+    resetBtn.style.display = 'none'; settingsBtn.style.display = 'none'; historyBtn.style.display = 'none';
+  }
+  updateCardsVisibility();
+}
+
+document.body.addEventListener('pointermove', (e) => {
+  const { clientX: x, clientY: y } = e;
+  document.documentElement.style.setProperty('--x', x.toFixed(2));
+  document.documentElement.style.setProperty('--xp', (x / window.innerWidth).toFixed(2));
+  document.documentElement.style.setProperty('--y', y.toFixed(2));
+  document.documentElement.style.setProperty('--yp', (y / window.innerHeight).toFixed(2));
+});
+
+names.forEach((name, index) => {
+  const activeRef = ref(database, `Evrak-V4/active/${index}`);
+  const card = document.createElement("div");
+  card.className = "glow-card";
+  if (index >= 17) card.classList.add("extra-person");
+  const innerGlow = document.createElement("div");
+  innerGlow.className = "card-inner-glow";
+  card.appendChild(innerGlow);
+  const contentWrapper = document.createElement("div");
+  contentWrapper.className = "card-content";
+  const topRow = document.createElement("div");
+  topRow.className = "card-top-row";
+  const titleText = document.createElement("div");
+  titleText.className = "card-title";
+  titleText.innerText = name;
+  const badge = document.createElement("div");
+  badge.className = "status-badge";
+  
+  badge.addEventListener("click", () => {
+    if (currentUserEmail === 'yonetici@sistem.com') {
+      const currentStatus = cardStates[index].isActive;
+      set(activeRef, !currentStatus);
+    }
+  });
+
+  topRow.appendChild(titleText);
+  topRow.appendChild(badge);
+  const counterSpan = document.createElement("div");
+  counterSpan.className = "counter";
+  counterSpan.innerText = "0";
+  const button = document.createElement("button");
+  button.textContent = index < 17 ? "Evrak Ekle" : "Güncelleme Ekle";
+  button.className = "btn";
+
+  button.addEventListener("click", () => {
+    if (!button.disabled) {
+      const currentRealTimeDateStr = getFormattedDate(new Date()); 
+      if (currentRealTimeDateStr !== todayStr) {
+        alert("Gün değiştiği için sistem otomatik olarak yeni güne geçiş yapıyor...");
+        location.reload(); return; 
+      }
+      const currentCounterRef = ref(database, `Evrak-V4/kayitlar/${currentRealTimeDateStr}/counters/${index}`);
+      runTransaction(currentCounterRef, (currentCount) => { return (currentCount || 0) + 1; });
+    }
+  });
+
+  contentWrapper.appendChild(topRow);
+  contentWrapper.appendChild(counterSpan);
+  contentWrapper.appendChild(button);
+  card.appendChild(contentWrapper);
+  container.appendChild(card);
+
+  cardStates[index] = { element: card, badge: badge, isActive: false, isMain: index < 17, counterSpan: counterSpan };
+
+  onValue(activeRef, (snapshot) => {
+    const isActive = snapshot.val() || false;
+    cardStates[index].isActive = isActive;
+    badge.innerText = isActive ? "AÇIK" : "KAPALI";
+    badge.className = "status-badge " + (isActive ? "open" : "closed");
+    if (isActive) { button.disabled = false; button.classList.remove("disabled"); } 
+    else { button.disabled = true; button.classList.add("disabled"); }
+    updateCardsVisibility();
+  });
+});
+
+function updateCardsVisibility() {
+  if (!currentUserEmail) return;
+  cardStates.forEach((state) => {
+    const { element, badge, isActive, isMain } = state;
+    let shouldShow = false;
+
+    if (currentUserEmail === 'yonetici@sistem.com') {
+      shouldShow = true; badge.style.cursor = 'pointer'; badge.classList.add('admin-hover');
+    } 
+    else if (currentUserEmail === 'evrakci@sistem.com') {
+      if (isMain && isActive) shouldShow = true; badge.style.cursor = 'default'; badge.classList.remove('admin-hover');
+    } 
+    else if (currentUserEmail === 'guncelleme@sistem.com') {
+      if (!isMain && isActive) shouldShow = true; badge.style.cursor = 'default'; badge.classList.remove('admin-hover');
+    }
+    else if (currentUserEmail === 'tetkik@sistem.com') {
+      if (isActive) shouldShow = true; badge.style.cursor = 'default'; badge.classList.remove('admin-hover');
+      state.element.querySelector('.btn').style.display = 'none';
+    }
+    element.style.display = shouldShow ? "flex" : "none";
+  });
+}
+
+const loginBtn = document.getElementById("loginBtn");
+const loginUserSelect = document.getElementById("loginUserSelect");
+const loginPass = document.getElementById("loginPass");
+const logoutBtn = document.getElementById("logoutBtn");
+
+loginBtn.addEventListener("click", performLogin);
+loginPass.addEventListener("keypress", (e) => { if(e.key === "Enter") performLogin(); });
+
+function performLogin() {
+  const selectedRole = loginUserSelect.value;
+  const passText = loginPass.value;
+  
+  if (!passText) {
+    alert("Lütfen şifrenizi girin."); return;
+  }
+  
+  const email = selectedRole + "@sistem.com";
+  signInWithEmailAndPassword(auth, email, passText)
+    .then(() => { loginPass.value = ""; })
+    .catch((error) => { alert("Hatalı şifre girdiniz!"); console.error(error); });
+}
+
+logoutBtn.addEventListener("click", () => {
+  signOut(auth).catch((error) => console.error("Çıkış hatası", error));
+});
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (confirm("DİKKAT: Bu işlem sadece BUGÜNÜN tüm sayaçlarını sıfırlar. Emin misiniz?")) {
+    names.forEach((_, index) => { set(ref(database, `Evrak-V4/kayitlar/${todayStr}/counters/${index}`), 0); });
+  }
+});
+
+const settingsModal = document.getElementById("settingsModal");
+document.getElementById("settingsBtn").addEventListener("click", () => {
+  document.getElementById("adminName").value = rolesData.admin?.name || "";
+  document.getElementById("evrakciName").value = rolesData.evrakci?.name || ""; 
+  document.getElementById("guncellemeName").value = rolesData.guncelleme?.name || ""; 
+  document.getElementById("yaziciName").value = rolesData.yazici?.name || ""; 
+
+  document.getElementById("adminDuyuru").value = sysConfigData.announcement || "";
+  document.getElementById("adminShowChampions").checked = sysConfigData.showChampions;
+  document.getElementById("adminMarqueeSpeed").value = sysConfigData.marqueeSpeed || 40;
+  
+  settingsModal.style.display = "flex";
+});
+
+document.getElementById("closeModalBtn").addEventListener("click", () => { settingsModal.style.display = "none"; });
+
+document.getElementById("saveSettingsBtn").addEventListener("click", () => {
+  const newRoles = {
+    admin: { name: document.getElementById("adminName").value.trim() },
+    evrakci: { name: document.getElementById("evrakciName").value.trim() },
+    guncelleme: { name: document.getElementById("guncellemeName").value.trim() },
+    yazici: { name: document.getElementById("yaziciName").value.trim() }
+  };
+
+  const newSysConfig = {
+    announcement: document.getElementById("adminDuyuru").value.trim(),
+    showChampions: document.getElementById("adminShowChampions").checked,
+    marqueeSpeed: parseInt(document.getElementById("adminMarqueeSpeed").value) || 40
+  };
+
+  Promise.all([
+    set(ref(database, 'Evrak-V4/settings/roles'), newRoles),
+    set(ref(database, 'Evrak-V4/settings/systemConfig'), newSysConfig)
+  ]).then(() => {
+    alert("Tüm ayarlar başarıyla güncellendi!");
+    settingsModal.style.display = "none";
+  }).catch((error) => alert("Hata oluştu: " + error));
+});
+
+const historyModal = document.getElementById("historyModal");
+const historyDateInput = document.getElementById("historyDate");
+const historyResultsDiv = document.getElementById("historyResults");
+const showZerosCb = document.getElementById("showZerosCb");
+const sortSelect = document.getElementById("sortSelect");
+const groupFilterSelect = document.getElementById("groupFilterSelect");
+
+document.getElementById("historyBtn").addEventListener("click", () => {
+  historyModal.style.display = "flex"; historyDateInput.value = ""; currentHistoryData = null;
+  showZerosCb.checked = false; sortSelect.value = "default"; groupFilterSelect.value = "all";
+  historyResultsDiv.innerHTML = "<p style='text-align:center; color:#94a3b8; font-size:14px; margin-top:50px;'>Lütfen sol taraftaki menüden sorgulamak istediğiniz tarihi seçiniz.</p>";
+});
+
+document.getElementById("closeHistoryBtn").addEventListener("click", () => { historyModal.style.display = "none"; });
+
+historyDateInput.addEventListener("change", fetchHistoryData);
+showZerosCb.addEventListener("change", renderHistoryList);
+sortSelect.addEventListener("change", renderHistoryList);
+groupFilterSelect.addEventListener("change", renderHistoryList);
+
+function fetchHistoryData(e) {
+  const selectedDate = e.target.value; 
+  if (!selectedDate) return;
+  historyResultsDiv.innerHTML = "<p style='text-align:center; color:#38bdf8; margin-top:50px;'>Veriler getiriliyor...</p>";
+
+  get(ref(database, `Evrak-V4/kayitlar/${selectedDate}/counters`)).then((snap) => {
+    currentHistoryData = snap.val(); renderHistoryList();
+  }).catch((error) => {
+    historyResultsDiv.innerHTML = "<p style='color:#ef4444; text-align:center; margin-top:50px;'>Hata oluştu: " + error + "</p>";
+  });
+}
+
+function renderHistoryList() {
+  if (!currentHistoryData) {
+    if(historyDateInput.value) historyResultsDiv.innerHTML = "<p style='text-align:center; color:#ef4444; margin-top:50px;'>Seçili tarihe ait geçmiş kayıt bulunamadı.</p>";
+    return;
+  }
+  const showZeros = showZerosCb.checked; const sortOrder = sortSelect.value; const groupFilter = groupFilterSelect.value;
+  let gunlukEvrakTotal = 0; let gunlukExtraTotal = 0; let resultArr = [];
+
+  names.forEach((name, i) => {
+    const count = currentHistoryData[i] || 0; const isExtra = i >= 17;
+    if (isExtra) gunlukExtraTotal += count; else gunlukEvrakTotal += count;
+    if (!showZeros && count === 0) return; 
+    if (groupFilter === 'evrak' && isExtra) return;
+    if (groupFilter === 'guncelleme' && !isExtra) return;
+    resultArr.push({ name: name, count: count, isExtra: isExtra, originalIndex: i });
+  });
+
+  if (sortOrder === 'desc') resultArr.sort((a, b) => b.count - a.count); 
+  else if (sortOrder === 'asc') resultArr.sort((a, b) => a.count - b.count); 
+  else resultArr.sort((a, b) => a.originalIndex - b.originalIndex); 
+
+  let html = "";
+  if (resultArr.length === 0) {
+    html = "<p style='text-align:center; color:#94a3b8; font-size:14px; margin-top:50px;'>Seçili filtrelere uygun personel bulunamadı.</p>";
+  } else {
+    resultArr.forEach(item => {
+      let extraClass = item.isExtra ? "gun-fark" : "";
+      html += `<div class='history-item ${extraClass}'><span>${item.name}</span><strong>${item.count}</strong></div>`;
+    });
+  }
+  html += `<div class='history-totals'><div>Toplam Evrak: <strong>${gunlukEvrakTotal}</strong></div><div>Toplam Güncelleme: <strong>${gunlukExtraTotal}</strong></div></div>`;
+  historyResultsDiv.innerHTML = html;
+}
+</script>
+</body>
+</html>
