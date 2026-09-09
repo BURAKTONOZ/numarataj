@@ -7,7 +7,7 @@
 
 <style>
 :root { --x: 0; --y: 0; --xp: 0; --yp: 0; --marquee-speed: 40s; }
-body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #161618; color: white; min-height: 100vh; overflow-x: hidden; }
+body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #161618; color: white; min-height: 100vh; overflow-x: hidden; user-select: none; -webkit-user-select: none; }
 
 #kineticCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
 
@@ -88,6 +88,7 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 .btn { padding: 12px; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 15px; width: 100%; }
 .btn:not(.disabled):hover { background: rgba(255, 255, 255, 0.2); border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
 .btn.disabled { background: rgba(0,0,0,0.2); color: #64748b; border-color: rgba(255,255,255,0.05); cursor: not-allowed; }
+.btn.cooldown { background: rgba(0,0,0,0.5); color: #94a3b8; border-color: rgba(255,255,255,0.05); cursor: wait; }
 
 @media (max-width: 900px) { .app-header { flex-direction: column; gap: 15px; padding: 15px; } .header-left { text-align: center; } .header-center { width: 100%; justify-content: center; gap: 10px; flex-wrap: wrap;} .header-right { width: 100%; justify-content: center; flex-wrap: wrap;} .grid { padding: 15px; gap: 15px; } }
 </style>
@@ -459,18 +460,40 @@ function renderCards() {
     counterSpan.innerText = "0";
     
     const button = document.createElement("button");
-    button.textContent = isMain ? "Evrak Ekle" : "Güncelleme Ekle";
+    const buttonOriginalText = isMain ? "Evrak Ekle" : "Güncelleme Ekle";
+    button.textContent = buttonOriginalText;
     button.className = "btn";
 
     button.addEventListener("click", () => {
-      if (!button.disabled) {
+      if (!button.disabled && !button.classList.contains("cooldown")) {
         const currentRealTimeDateStr = getFormattedDate(new Date()); 
         if (currentRealTimeDateStr !== todayStr) {
           alert("Gün değiştiği için sistem otomatik olarak yeni güne geçiş yapıyor...");
           location.reload(); return; 
         }
         const currentCounterRef = ref(database, `Evrak-V4/kayitlar/${currentRealTimeDateStr}/counters/${index}`);
+        
         runTransaction(currentCounterRef, (currentCount) => { return (currentCount || 0) + 1; })
+        .then((result) => {
+           if (result.committed && currentUserEmail !== 'yonetici@sistem.com') {
+              let remaining = 30;
+              button.classList.add("cooldown");
+              button.disabled = true;
+              button.textContent = remaining + " Sn Bekleyin";
+              
+              const timer = setInterval(() => {
+                remaining--;
+                if (remaining > 0) {
+                  button.textContent = remaining + " Sn Bekleyin";
+                } else {
+                  clearInterval(timer);
+                  button.classList.remove("cooldown");
+                  button.disabled = !cardStates[index].isActive; 
+                  button.textContent = buttonOriginalText;
+                }
+              }, 1000);
+           }
+        })
         .catch(err => alert("İşlem reddedildi. (Güvenlik Kuralları)"));
       }
     });
@@ -489,8 +512,12 @@ function renderCards() {
       badge.innerText = isActive ? "AÇIK" : "KAPALI";
       badge.className = "status-badge " + (isActive ? "open" : "closed");
       
-      if (isActive) { button.disabled = false; button.classList.remove("disabled"); } 
-      else { button.disabled = true; button.classList.add("disabled"); }
+      if (!button.classList.contains("cooldown")) {
+         if (isActive) { button.disabled = false; button.classList.remove("disabled"); } 
+         else { button.disabled = true; button.classList.add("disabled"); }
+      } else {
+         if (!isActive) { button.classList.add("disabled"); }
+      }
       
       if (currentUserEmail !== 'yonetici@sistem.com') {
         card.style.display = isActive ? "flex" : "none";
@@ -694,6 +721,16 @@ function renderHistoryList() {
   html += `<div class='history-totals'><div>Toplam Evrak: <strong>${gunlukEvrakTotal}</strong></div><div>Toplam Güncelleme: <strong>${gunlukExtraTotal}</strong></div></div>`;
   historyResultsDiv.innerHTML = html;
 }
+</script>
+
+<!-- SAĞ TIK & F12 ENGELLEYİCİ -->
+<script>
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.onkeydown = function(e) {
+    if (e.keyCode == 123) return false;
+    if (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) return false;
+    if (e.ctrlKey && e.keyCode == 85) return false;
+  };
 </script>
 </body>
 </html>
