@@ -1,0 +1,2 @@
+# numarataj
+Numarataj islemleri
