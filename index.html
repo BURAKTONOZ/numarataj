@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Evrak Dağıtım Sistemi - V4 Güvenli</title>
+<title>Evrak Dağıtım Sistemi - V4 Ultimate</title>
 
 <style>
 :root { --x: 0; --y: 0; --xp: 0; --yp: 0; --marquee-speed: 40s; }
@@ -27,14 +27,11 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 .header-center { display: flex; gap: 20px; }
 .stat-box { background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 12px; font-size: 15px; border: 1px solid rgba(255,255,255,0.1); }
 .stat-box strong { font-size: 18px; color: #38bdf8; margin-left: 5px; }
-.header-right { display: flex; align-items: center; gap: 15px; }
-.role-badge-text { font-size: 14px; color: #cbd5e1; }
+.header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.role-badge-text { font-size: 14px; color: #cbd5e1; margin-right: 10px; }
 .role-badge-text strong { color: #34d399; }
-.action-btn { border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; color: white; }
+.action-btn { border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; color: white; font-size: 13px; }
 .logout-btn { background: #64748b; } .logout-btn:hover { background: #475569; }
-.reset-btn { background: #ef4444; display: none; } .reset-btn:hover { background: #dc2626; }
-.settings-btn { background: #f59e0b; display: none; } .settings-btn:hover { background: #d97706; }
-.history-btn { background: #8b5cf6; display: none; } .history-btn:hover { background: #7c3aed; }
 
 .marquee-container { width: 100%; overflow: hidden; background: rgba(0, 0, 0, 0.4); padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 .marquee { display: inline-block; white-space: nowrap; animation: scroll var(--marquee-speed) linear infinite; color: #fbbf24; font-size: 15px; font-weight: bold; letter-spacing: 1px; }
@@ -88,7 +85,7 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 .btn { padding: 12px; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.2); font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 15px; width: 100%; }
 .btn:not(.disabled):hover { background: rgba(255, 255, 255, 0.2); border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
 .btn.disabled { background: rgba(0,0,0,0.2); color: #64748b; border-color: rgba(255,255,255,0.05); cursor: not-allowed; }
-.btn.cooldown { background: rgba(0,0,0,0.5); color: #94a3b8; border-color: rgba(255,255,255,0.05); cursor: wait; }
+.btn.cooldown { background: rgba(139, 92, 246, 0.5); color: #fff; border-color: rgba(139, 92, 246, 0.8); cursor: wait; }
 
 @media (max-width: 900px) { .app-header { flex-direction: column; gap: 15px; padding: 15px; } .header-left { text-align: center; } .header-center { width: 100%; justify-content: center; gap: 10px; flex-wrap: wrap;} .header-right { width: 100%; justify-content: center; flex-wrap: wrap;} .grid { padding: 15px; gap: 15px; } }
 </style>
@@ -116,18 +113,16 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 <div id="mainApp">
   <header class="app-header">
     <div class="header-left">
-      <h2>Evrak Dağıtım Sistemi <span style="font-size:12px; color:#8b5cf6;">(V4)</span></h2>
+      <h2>Evrak Dağıtım Sistemi <span style="font-size:12px; color:#8b5cf6;">(V4 Ultimate)</span></h2>
       <div id="todayDateDisplay" class="header-date">Tarih Bekleniyor...</div>
     </div>
     <div class="header-center">
       <div class="stat-box">Evrak: <strong id="mainCounter">0</strong></div>
       <div class="stat-box">Güncelleme: <strong id="extraCounter">0</strong></div>
     </div>
-    <div class="header-right">
+    <div class="header-right" id="headerRightControls">
+      <!-- HTML'de Gizli Buton Yok! Her şey JS ile sadece yöneticiye özel render edilecek -->
       <span class="role-badge-text">Giriş: <strong id="roleText"></strong></span>
-      <button class="action-btn history-btn" id="historyBtn">📅 Geçmiş Kayıtlar</button>
-      <button class="action-btn settings-btn" id="settingsBtn">⚙ Ayarlar</button>
-      <button class="action-btn reset-btn" id="resetBtn">Bugünü Sıfırla</button>
       <button class="action-btn logout-btn" id="logoutBtn">Çıkış Yap</button>
     </div>
   </header>
@@ -227,10 +222,9 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
   </div>
 </div>
 
-<!-- KINETIC GRID JS (YALNIZCA GİRİŞ EKRANINDA ÇALIŞACAK ŞEKİLDE AYARLANDI) -->
+<!-- KINETIC GRID JS -->
 <script>
-  window.isCanvasAnimating = true; // Global animasyon kontrolcüsü
-  
+  window.isCanvasAnimating = true; 
   const canvas = document.getElementById('kineticCanvas'); const ctx = canvas.getContext('2d');
   const CELL_SIZE = 55; const INFLUENCE_RADIUS = 260; const MAX_WARP = 24; const DOT_SPACING = 28; const LERP_SPEED = 0.08;
   const LINE_BASE = { r: 255, g: 255, b: 255, a: 0.13 }; const NODE_BASE_RADIUS = 1.8; const NODE_ACTIVE_RADIUS = 3.2;
@@ -241,26 +235,17 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
   function getWarpedPoint(gx, gy, col, row, cols, rows) { const edgeMargin = 1.5; const colPin = Math.min(col / edgeMargin, (cols - 1 - col) / edgeMargin, 1); const rowPin = Math.min(row / edgeMargin, (rows - 1 - row) / edgeMargin, 1); const pinFactor = colPin * colPin * rowPin * rowPin; const dx = gx - mouse.x; const dy = gy - mouse.y; const dist = Math.sqrt(dx * dx + dy * dy); const proximity = Math.max(0, 1 - dist / INFLUENCE_RADIUS) * pinFactor; let rx = 0, ry = 0; for (const r of ripples) { const rdx = gx - r.x; const rdy = gy - r.y; const rdist = Math.sqrt(rdx * rdx + rdy * rdy); const waveWidth = 55; const diff = rdist - r.radius; if (Math.abs(diff) < waveWidth) { const strength = (1 - Math.abs(diff) / waveWidth) * r.opacity * 18 * pinFactor; const angle = Math.atan2(rdy, rdx); const sign = diff < 0 ? -1 : 1; rx += Math.cos(angle) * strength * sign * -1; ry += Math.sin(angle) * strength * sign * -1; } } if (dist < INFLUENCE_RADIUS && dist > 0 && pinFactor > 0) { const t = dist / INFLUENCE_RADIUS; const eased = t < 0.01 ? 0 : (1 - t) * (1 - t) * Math.min(1, dist / 60); const warpAmt = eased * MAX_WARP * pinFactor; const angle = Math.atan2(dy, dx); return { pt: { x: gx - Math.cos(angle) * warpAmt + rx, y: gy - Math.sin(angle) * warpAmt + ry }, proximity }; } return { pt: { x: gx + rx, y: gy + ry }, proximity }; }
   function resize() { w = window.innerWidth; h = window.innerHeight; canvas.width = w; canvas.height = h; }
   function draw(now) { ctx.clearRect(0, 0, w, h); ctx.fillStyle = theme.bg; ctx.fillRect(0, 0, w, h); ctx.fillStyle = "rgba(255,255,255,0.05)"; for (let x = DOT_SPACING / 2; x < w; x += DOT_SPACING) { for (let y = DOT_SPACING / 2; y < h; y += DOT_SPACING) { ctx.beginPath(); ctx.arc(x, y, 0.7, 0, Math.PI * 2); ctx.fill(); } } for (let i = ripples.length - 1; i >= 0; i--) { const r = ripples[i]; const age = (now - r.born) / 1000; r.radius = Math.max(0, age * 400); r.opacity = Math.max(0, 1 - age * 1.2); if (r.opacity <= 0) ripples.splice(i, 1); } const cols = Math.max(2, Math.ceil(w / CELL_SIZE)) + 1; const rows = Math.max(2, Math.ceil(h / CELL_SIZE)) + 1; const cellW = w / (cols - 1); const cellH = h / (rows - 1); const pts = []; const prox = []; for (let row = 0; row < rows; row++) { pts[row] = []; prox[row] = []; for (let col = 0; col < cols; col++) { const { pt, proximity } = getWarpedPoint(col * cellW, row * cellH, col, row, cols, rows); pts[row][col] = pt; prox[row][col] = proximity; } } const drawSeg = (p1, p2, pr1, pr2) => { const avg = (pr1 + pr2) / 2; const t = avg * avg * (3 - 2 * avg); ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.strokeStyle = lerpColor(LINE_BASE, theme.lineActive, t); ctx.lineWidth = lerpN(0.8, 1.5, t); ctx.stroke(); }; ctx.lineCap = "butt"; for (let row = 0; row < rows; row++) for (let col = 0; col < cols - 1; col++) drawSeg(pts[row][col], pts[row][col + 1], prox[row][col], prox[row][col + 1]); for (let col = 0; col < cols; col++) for (let row = 0; row < rows - 1; row++) drawSeg(pts[row][col], pts[row + 1][col], prox[row][col], prox[row + 1][col]); for (let row = 0; row < rows; row++) { for (let col = 0; col < cols; col++) { const p = pts[row][col]; const pr = prox[row][col]; const t = pr * pr * (3 - 2 * pr); const r = lerpN(NODE_BASE_RADIUS, NODE_ACTIVE_RADIUS, t); if (t > 0.3) { const glowR = r + lerpN(0, 6, (t - 0.3) / 0.7); const grd = ctx.createRadialGradient(p.x, p.y, r * 0.5, p.x, p.y, glowR); grd.addColorStop(0, `rgba(${theme.glow},${(t * 0.3).toFixed(3)})`); grd.addColorStop(1, `rgba(${theme.glow},0)`); ctx.beginPath(); ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2); ctx.fillStyle = grd; ctx.fill(); } ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fillStyle = lerpColor({ r: 255, g: 255, b: 255, a: 0.2 }, theme.nodeActive, t); ctx.fill(); } } for (const r of ripples) { const safeRadius = Math.max(0, r.radius); ctx.beginPath(); ctx.arc(r.x, r.y, safeRadius, 0, Math.PI * 2); ctx.strokeStyle = `rgba(${theme.ripple},${(r.opacity * 0.28).toFixed(3)})`; ctx.lineWidth = 1.5; ctx.stroke(); } }
-  
   function animate(now) { 
-    if (!window.isCanvasAnimating) return; // CPU TASARRUFU: Login sonrasi dongu durur.
+    if (!window.isCanvasAnimating) return;
     mouse.x = lerpN(mouse.x, targetMouse.x, LERP_SPEED); mouse.y = lerpN(mouse.y, targetMouse.y, LERP_SPEED); 
     draw(now); 
     requestAnimationFrame(animate); 
   }
-  
   window.addEventListener('resize', resize); window.addEventListener('mousemove', (e) => { targetMouse = { x: e.clientX, y: e.clientY }; }); window.addEventListener('click', (e) => { ripples.push({ x: e.clientX, y: e.clientY, radius: 0, opacity: 1, born: performance.now() }); });
   resize(); requestAnimationFrame(animate);
-
-  // Animasyonu dışarıdan başlatıp durduracak fonksiyonlar
   window.toggleBackgroundAnimation = function(active) {
     window.isCanvasAnimating = active;
-    if (active) {
-      canvas.style.display = 'block';
-      requestAnimationFrame(animate);
-    } else {
-      canvas.style.display = 'none';
-    }
+    if (active) { canvas.style.display = 'block'; requestAnimationFrame(animate); } else { canvas.style.display = 'none'; }
   };
 </script>
 
@@ -268,8 +253,9 @@ body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 <!-- FIREBASE VE UYGULAMA MANTIĞI JS           -->
 <!-- ========================================== -->
 <script type="module">
+// Atomic işlem kütüphaneleri eklendi (update, increment)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getDatabase, ref, onValue, runTransaction, set, get, query, orderByKey, startAt, endAt } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { getDatabase, ref, onValue, update, increment, set, get, query, orderByKey, startAt, endAt, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -310,6 +296,7 @@ let currentHistoryData = null;
 let championsTextRaw = ""; 
 let cardStates = []; 
 let globalListeners = [];
+const myLoginTime = Date.now();
 
 const container = document.getElementById("buttonContainer");
 
@@ -330,7 +317,7 @@ document.getElementById('todayDateDisplay').innerText = "Tarih: " + todayObj.toL
 
 setInterval(() => {
   const checkTime = new Date();
-  if (getFormattedDate(checkTime) !== todayStr) location.reload(); 
+  if (getFormattedDate(checkTime) !== todayStr) location.reload(true); 
 }, 60000); 
 
 onAuthStateChanged(auth, (user) => {
@@ -338,35 +325,47 @@ onAuthStateChanged(auth, (user) => {
     currentUserEmail = user.email;
     document.getElementById("loginScreen").style.display = "none";
     document.getElementById("mainApp").style.display = "block";
-    
-    // GİRİŞ YAPINCA ANİMASYONU DURDUR (CPU TASARRUFU)
     if (window.toggleBackgroundAnimation) window.toggleBackgroundAnimation(false);
-    
     initializeUIForUser();
   } else {
     currentUserEmail = null;
     document.getElementById("loginScreen").style.display = "flex";
     document.getElementById("mainApp").style.display = "none";
-    
-    // ÇIKIŞ YAPINCA ANİMASYONU TEKRAR BAŞLAT
     if (window.toggleBackgroundAnimation) window.toggleBackgroundAnimation(true);
-    
     clearAllData();
   }
 });
 
 function clearAllData() {
   container.innerHTML = "";
+  cardStates.forEach(state => { if(state && state.timer) clearInterval(state.timer); });
   cardStates = [];
   globalListeners.forEach(unsubscribe => unsubscribe());
   globalListeners = [];
   document.getElementById("mainCounter").innerText = "0";
   document.getElementById("extraCounter").innerText = "0";
+  document.querySelectorAll('.admin-dynamic-btn').forEach(el => el.remove());
 }
 
 function initializeUIForUser() {
   clearAllData();
-  updateRoleUI();
+  buildDynamicAdminPanel();
+
+  // YÖNETİCİ SİNYALLERİNİ DİNLEME (Toplu Yenile / Toplu At)
+  globalListeners.push(onValue(ref(database, 'Evrak-V4/adminCommands'), (snap) => {
+    const cmds = snap.val() || {};
+    if (cmds.forceReload && cmds.forceReload > myLoginTime) {
+      window.location.reload(true);
+    }
+    if (cmds.forceLogout && cmds.forceLogout > myLoginTime) {
+      if (currentUserEmail !== 'yonetici@sistem.com') {
+        signOut(auth).then(() => {
+          alert("Oturumunuz Sistem Yöneticisi tarafından güvenlik amacıyla sonlandırıldı!");
+          window.location.reload(true);
+        });
+      }
+    }
+  }));
 
   const sysConfigRef = ref(database, 'Evrak-V4/settings/systemConfig');
   globalListeners.push(onValue(sysConfigRef, (snapshot) => {
@@ -376,47 +375,26 @@ function initializeUIForUser() {
     updateMarqueeDisplay(); 
   }));
 
-  const rolesRef = ref(database, 'Evrak-V4/settings/roles'); 
-  get(rolesRef).then((snapshot) => {
-    if (!snapshot.exists()) {
-      set(rolesRef, {
-        admin: { name: "YÖNETİCİ" },
-        evrakci: { name: "EVRAK GİRİŞ" },
-        guncelleme: { name: "GÜNCELLEME" },
-        yazici: { name: "TETKİK" }
-      });
-    }
-  });
-
   get(ref(database, `Evrak-V4/kayitlar/${yesterdayStr}/counters`)).then((snap) => {
     const data = snap.val();
     if(data) {
-      let maxEvrak = 0, evrakWinners = [];
-      let maxGuncelleme = 0, guncellemeWinners = [];
-      let totalActivity = 0; 
+      let maxEvrak = 0, evrakWinners = []; let maxGuncelleme = 0, guncellemeWinners = []; let totalActivity = 0; 
       names.forEach((name, i) => {
-        let count = data[i] || 0;
-        totalActivity += count;
-        let cleanName = name.split('-')[1].trim(); 
+        let count = data[i] || 0; totalActivity += count; let cleanName = name.split('-')[1].trim(); 
         if(i < 17) {
-          if(count > maxEvrak) { maxEvrak = count; evrakWinners = [cleanName]; }
-          else if(count === maxEvrak && count > 0) { evrakWinners.push(cleanName); }
+          if(count > maxEvrak) { maxEvrak = count; evrakWinners = [cleanName]; } else if(count === maxEvrak && count > 0) { evrakWinners.push(cleanName); }
         } else {
           cleanName = cleanName.replace('Güncelleme ', ''); 
-          if(count > maxGuncelleme) { maxGuncelleme = count; guncellemeWinners = [cleanName]; }
-          else if(count === maxGuncelleme && count > 0) { guncellemeWinners.push(cleanName); }
+          if(count > maxGuncelleme) { maxGuncelleme = count; guncellemeWinners = [cleanName]; } else if(count === maxGuncelleme && count > 0) { guncellemeWinners.push(cleanName); }
         }
       });
-      if (totalActivity === 0) {
-        championsTextRaw = "Bir önceki güne ait kayıt bulunmamaktadır.";
-      } else {
-        let evrakText = evrakWinners.length > 0 ? `🏆 EVRAK ŞAMPİYONU: ${evrakWinners.join(', ')} (${maxEvrak} Evrak)` : "🏆 Evrak: Kayıt Yok";
-        let guncellemeText = guncellemeWinners.length > 0 ? `⭐ GÜNCELLEME ŞAMPİYONU: ${guncellemeWinners.join(', ')} (${maxGuncelleme} Güncelleme)` : "⭐ Güncelleme: Kayıt Yok";
+      if (totalActivity === 0) championsTextRaw = "Bir önceki güne ait kayıt bulunmamaktadır.";
+      else {
+        let evrakText = evrakWinners.length > 0 ? `🏆 EVRAK ŞAMPİYONU: ${evrakWinners.join(', ')} (${maxEvrak})` : "🏆 Evrak: Yok";
+        let guncellemeText = guncellemeWinners.length > 0 ? `⭐ GÜNCELLEME ŞAMPİYONU: ${guncellemeWinners.join(', ')} (${maxGuncelleme})` : "⭐ Güncelleme: Yok";
         championsTextRaw = `BİR ÖNCEKİ GÜNÜN ŞAMPİYONLARI ➔   ${evrakText}   ✦✦✦   ${guncellemeText}`;
       }
-    } else {
-      championsTextRaw = "Bir önceki güne ait kayıt bulunmamaktadır.";
-    }
+    } else championsTextRaw = "Bir önceki güne ait kayıt bulunmamaktadır.";
     updateMarqueeDisplay(); 
   });
 
@@ -435,359 +413,236 @@ function initializeUIForUser() {
   }));
 }
 
+// 📌 DİNAMİK YÖNETİCİ PANELİ ÜRETİCİ
+function buildDynamicAdminPanel() {
+  document.getElementById("roleText").innerText = ROLE_NAMES[currentUserEmail] || "KULLANICI";
+  if (currentUserEmail === 'yonetici@sistem.com') {
+    const hr = document.getElementById('headerRightControls');
+    const normalLogout = document.getElementById('logoutBtn');
+    
+    const btnHistory = document.createElement('button'); btnHistory.className = 'action-btn admin-dynamic-btn'; btnHistory.style.background = '#8b5cf6';
+    btnHistory.innerText = '📅 Geçmiş'; btnHistory.onclick = () => { document.getElementById("historyModal").style.display = "flex"; };
+    
+    const btnSettings = document.createElement('button'); btnSettings.className = 'action-btn admin-dynamic-btn'; btnSettings.style.background = '#f59e0b';
+    btnSettings.innerText = '⚙ Ayarlar'; btnSettings.onclick = () => {
+      document.getElementById("adminDuyuru").value = sysConfigData.announcement || "";
+      document.getElementById("adminShowChampions").checked = sysConfigData.showChampions;
+      document.getElementById("adminMarqueeSpeed").value = sysConfigData.marqueeSpeed || 40;
+      document.getElementById("speedValueDisplay").textContent = (sysConfigData.marqueeSpeed || 40) + " Sn";
+      document.getElementById("settingsModal").style.display = "flex";
+    };
+
+    const btnReset = document.createElement('button'); btnReset.className = 'action-btn admin-dynamic-btn'; btnReset.style.background = '#ef4444';
+    btnReset.innerText = 'Sıfırla'; btnReset.onclick = () => {
+      if (confirm("DİKKAT: Sadece BUGÜNÜN sayaçları sıfırlanacak. Emin misiniz?")) {
+        names.forEach((_, index) => { set(ref(database, `Evrak-V4/kayitlar/${todayStr}/counters/${index}`), 0); });
+      }
+    };
+
+    const btnReloadAll = document.createElement('button'); btnReloadAll.className = 'action-btn admin-dynamic-btn'; btnReloadAll.style.background = '#0ea5e9';
+    btnReloadAll.innerText = '🔄 Herkesi Yenile'; btnReloadAll.onclick = () => {
+      if(confirm("Tüm personelin tarayıcıları zorla F5 atacak. Emin misiniz?")) {
+        set(ref(database, 'Evrak-V4/adminCommands/forceReload'), Date.now());
+      }
+    };
+
+    const btnLogoutAll = document.createElement('button'); btnLogoutAll.className = 'action-btn admin-dynamic-btn'; btnLogoutAll.style.background = '#be123c';
+    btnLogoutAll.innerText = '🚪 Herkesi At'; btnLogoutAll.onclick = () => {
+      if(confirm("DİKKAT: Yönetici hariç herkesin oturumu zorla kapatılacak! Emin misiniz?")) {
+        set(ref(database, 'Evrak-V4/adminCommands/forceLogout'), Date.now());
+      }
+    };
+
+    hr.insertBefore(btnHistory, normalLogout); hr.insertBefore(btnSettings, normalLogout); hr.insertBefore(btnReset, normalLogout); hr.insertBefore(btnReloadAll, normalLogout); hr.insertBefore(btnLogoutAll, normalLogout);
+  }
+}
+
 function renderCards() {
   names.forEach((name, index) => {
     const isMain = index < 17;
-    
     let shouldRender = false;
     if (currentUserEmail === 'yonetici@sistem.com') shouldRender = true;
     else if ((currentUserEmail === 'evrakci@sistem.com' || currentUserEmail === 'guncelleme@sistem.com') && isMain) shouldRender = true;
     else if (currentUserEmail === 'tetkik@sistem.com' && !isMain) shouldRender = true;
     
-    if (!shouldRender) {
-      cardStates[index] = { element: null, isActive: false, isMain: isMain, counterSpan: null };
-      return; 
-    }
+    if (!shouldRender) { cardStates[index] = { element: null, isActive: false, isMain: isMain, counterSpan: null, timer: null }; return; }
 
+    const card = document.createElement("div"); card.className = "glow-card"; if (!isMain) card.classList.add("extra-person");
+    const innerGlow = document.createElement("div"); innerGlow.className = "card-inner-glow"; card.appendChild(innerGlow);
+    const contentWrapper = document.createElement("div"); contentWrapper.className = "card-content";
+    const topRow = document.createElement("div"); topRow.className = "card-top-row";
+    const titleText = document.createElement("div"); titleText.className = "card-title"; titleText.innerText = name;
+    const badge = document.createElement("div"); badge.className = "status-badge";
+    
     const activeRef = ref(database, `Evrak-V4/active/${index}`);
-    const card = document.createElement("div");
-    card.className = "glow-card";
-    if (!isMain) card.classList.add("extra-person");
-    
-    const innerGlow = document.createElement("div");
-    innerGlow.className = "card-inner-glow";
-    card.appendChild(innerGlow);
-    
-    const contentWrapper = document.createElement("div");
-    contentWrapper.className = "card-content";
-    
-    const topRow = document.createElement("div");
-    topRow.className = "card-top-row";
-    
-    const titleText = document.createElement("div");
-    titleText.className = "card-title";
-    titleText.innerText = name;
-    
-    const badge = document.createElement("div");
-    badge.className = "status-badge";
-    
     if (currentUserEmail === 'yonetici@sistem.com') {
-      badge.classList.add('admin-hover');
-      badge.style.cursor = 'pointer';
-      badge.addEventListener("click", () => {
-        const currentStatus = cardStates[index].isActive;
-        set(activeRef, !currentStatus).catch(err => alert("Yetkiniz reddedildi."));
-      });
+      badge.classList.add('admin-hover'); badge.style.cursor = 'pointer';
+      badge.addEventListener("click", () => { set(activeRef, !cardStates[index].isActive).catch(err => alert("Yetkiniz reddedildi.")); });
     }
 
-    topRow.appendChild(titleText);
-    topRow.appendChild(badge);
-    
-    const counterSpan = document.createElement("div");
-    counterSpan.className = "counter";
-    counterSpan.innerText = "0";
-    
+    topRow.appendChild(titleText); topRow.appendChild(badge);
+    const counterSpan = document.createElement("div"); counterSpan.className = "counter"; counterSpan.innerText = "0";
     const button = document.createElement("button");
     const buttonOriginalText = isMain ? "Evrak Ekle" : "Güncelleme Ekle";
-    button.textContent = buttonOriginalText;
-    button.className = "btn";
+    button.textContent = buttonOriginalText; button.className = "btn";
 
+    // 📌 ATOMIC (BÖLÜNMEZ) İŞLEM VE YARIŞ DURUMU (RACE CONDITION) KORUMASI
     button.addEventListener("click", () => {
       if (!button.disabled && !button.classList.contains("cooldown")) {
         const currentRealTimeDateStr = getFormattedDate(new Date()); 
-        if (currentRealTimeDateStr !== todayStr) {
-          alert("Gün değiştiği için sistem otomatik olarak yeni güne geçiş yapıyor...");
-          location.reload(); return; 
-        }
-        const currentCounterRef = ref(database, `Evrak-V4/kayitlar/${currentRealTimeDateStr}/counters/${index}`);
+        if (currentRealTimeDateStr !== todayStr) { location.reload(true); return; }
         
-        runTransaction(currentCounterRef, (currentCount) => { return (currentCount || 0) + 1; })
-        .then((result) => {
-           if (result.committed && currentUserEmail !== 'yonetici@sistem.com') {
-              let remaining = 30;
-              button.classList.add("cooldown");
-              button.disabled = true;
-              button.textContent = remaining + " Sn Bekleyin";
-              
-              const timer = setInterval(() => {
-                remaining--;
-                if (remaining > 0) {
-                  button.textContent = remaining + " Sn Bekleyin";
-                } else {
-                  clearInterval(timer);
-                  button.classList.remove("cooldown");
-                  button.disabled = !cardStates[index].isActive; 
-                  button.textContent = buttonOriginalText;
-                }
-              }, 1000);
-           }
+        const updates = {};
+        updates[`Evrak-V4/kayitlar/${currentRealTimeDateStr}/counters/${index}`] = increment(1); // 1. İşlem: Artırma
+        updates[`Evrak-V4/locks/${index}`] = serverTimestamp(); // 2. İşlem: Kitleme
+
+        update(ref(database), updates)
+        .then(() => {
+          // Başarılı. İlk basan sensin, herkesin ekranı kilitlenecek.
         })
-        .catch(err => alert("İşlem reddedildi. (Güvenlik Kuralları)"));
+        .catch(err => {
+          // Saliselerle geç kalan kişi Firebase duvarına toslar ve buraya düşer.
+          if (currentUserEmail !== 'yonetici@sistem.com') {
+             alert("⚠️ İşlem reddedildi!\nBu personele henüz evrak atandı. Lütfen sürenin dolmasını bekleyin veya müsait olan başka bir personele evrak verin.");
+          }
+        });
       }
     });
 
-    contentWrapper.appendChild(topRow);
-    contentWrapper.appendChild(counterSpan);
-    contentWrapper.appendChild(button);
-    card.appendChild(contentWrapper);
-    container.appendChild(card);
+    contentWrapper.appendChild(topRow); contentWrapper.appendChild(counterSpan); contentWrapper.appendChild(button);
+    card.appendChild(contentWrapper); container.appendChild(card);
 
-    cardStates[index] = { element: card, badge: badge, isActive: false, isMain: isMain, counterSpan: counterSpan };
+    cardStates[index] = { element: card, badge: badge, isActive: false, isMain: isMain, counterSpan: counterSpan, timer: null };
+
+    // 📌 KÜRESEL GERİ SAYIM DİNLEYİCİSİ (60 SN)
+    globalListeners.push(onValue(ref(database, `Evrak-V4/locks/${index}`), (snap) => {
+      const lockTimestamp = snap.val() || 0;
+      if (lockTimestamp === 0) return;
+
+      const checkLock = () => {
+        const diff = Date.now() - lockTimestamp;
+        if (diff < 59000) {
+          button.classList.add("cooldown"); button.disabled = true;
+          button.textContent = Math.ceil((59000 - diff) / 1000) + " Sn (Kilitli)";
+          if (!cardStates[index].timer) { cardStates[index].timer = setInterval(checkLock, 1000); }
+        } else {
+          if (cardStates[index].timer) { clearInterval(cardStates[index].timer); cardStates[index].timer = null; }
+          button.classList.remove("cooldown"); button.disabled = !cardStates[index].isActive; 
+          button.textContent = buttonOriginalText;
+        }
+      };
+      checkLock(); 
+    }));
 
     globalListeners.push(onValue(activeRef, (snapshot) => {
       const isActive = snapshot.val() || false;
       cardStates[index].isActive = isActive;
       badge.innerText = isActive ? "AÇIK" : "KAPALI";
       badge.className = "status-badge " + (isActive ? "open" : "closed");
-      
       if (!button.classList.contains("cooldown")) {
-         if (isActive) { button.disabled = false; button.classList.remove("disabled"); } 
-         else { button.disabled = true; button.classList.add("disabled"); }
-      } else {
-         if (!isActive) { button.classList.add("disabled"); }
+         button.disabled = !isActive;
+         if(!isActive) button.classList.add("disabled"); else button.classList.remove("disabled");
       }
-      
-      if (currentUserEmail !== 'yonetici@sistem.com') {
-        card.style.display = isActive ? "flex" : "none";
-      } else {
-        card.style.display = "flex";
-      }
+      if (currentUserEmail !== 'yonetici@sistem.com') card.style.display = isActive ? "flex" : "none"; else card.style.display = "flex";
     }));
   });
 }
 
 function updateMarqueeDisplay() {
-  const marquee = document.getElementById('winnersMarquee');
-  marquee.innerHTML = ""; 
-  
+  const marquee = document.getElementById('winnersMarquee'); marquee.innerHTML = ""; 
   if (sysConfigData.announcement && sysConfigData.announcement.trim() !== "") {
-    const span1 = document.createElement('span');
-    span1.style.color = '#ef4444';
+    const span1 = document.createElement('span'); span1.style.color = '#ef4444';
     span1.textContent = '🔴 YÖNETİCİ DUYURUSU: ' + sysConfigData.announcement;
-    marquee.appendChild(span1);
-    marquee.appendChild(document.createTextNode('\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'));
+    marquee.appendChild(span1); marquee.appendChild(document.createTextNode('\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0'));
   }
   if (sysConfigData.showChampions) {
-    const span2 = document.createElement('span');
-    span2.style.color = '#fbbf24';
-    span2.textContent = championsTextRaw;
-    marquee.appendChild(span2);
+    const span2 = document.createElement('span'); span2.style.color = '#fbbf24'; span2.textContent = championsTextRaw; marquee.appendChild(span2);
   }
-  if (!sysConfigData.announcement && !sysConfigData.showChampions) {
-    marquee.textContent = 'Sistem Aktif... Tüm personele iyi çalışmalar dileriz.';
-  }
+  if (!sysConfigData.announcement && !sysConfigData.showChampions) marquee.textContent = 'Sistem Aktif... Tüm personele iyi çalışmalar dileriz.';
 }
 
-function updateRoleUI() {
-  const resetBtn = document.getElementById("resetBtn");
-  const settingsBtn = document.getElementById("settingsBtn");
-  const historyBtn = document.getElementById("historyBtn");
-
-  document.getElementById("roleText").innerText = ROLE_NAMES[currentUserEmail] || "KULLANICI";
-
-  if (currentUserEmail === 'yonetici@sistem.com') {
-    resetBtn.style.display = 'inline-block'; settingsBtn.style.display = 'inline-block'; historyBtn.style.display = 'inline-block';
-  } else {
-    resetBtn.style.display = 'none'; settingsBtn.style.display = 'none'; historyBtn.style.display = 'none';
-  }
-}
-
-document.body.addEventListener('pointermove', (e) => {
-  const { clientX: x, clientY: y } = e;
-  document.documentElement.style.setProperty('--x', x.toFixed(2));
-  document.documentElement.style.setProperty('--xp', (x / window.innerWidth).toFixed(2));
-  document.documentElement.style.setProperty('--y', y.toFixed(2));
-  document.documentElement.style.setProperty('--yp', (y / window.innerHeight).toFixed(2));
-});
-
-const loginBtn = document.getElementById("loginBtn");
-const loginUserSelect = document.getElementById("loginUserSelect");
-const loginPass = document.getElementById("loginPass");
-const logoutBtn = document.getElementById("logoutBtn");
-
-loginBtn.addEventListener("click", performLogin);
-loginPass.addEventListener("keypress", (e) => { if(e.key === "Enter") performLogin(); });
+const loginBtn = document.getElementById("loginBtn"); const loginUserSelect = document.getElementById("loginUserSelect"); const loginPass = document.getElementById("loginPass"); const logoutBtn = document.getElementById("logoutBtn");
+loginBtn.addEventListener("click", performLogin); loginPass.addEventListener("keypress", (e) => { if(e.key === "Enter") performLogin(); });
 
 function performLogin() {
-  const selectedRole = loginUserSelect.value;
-  const passText = loginPass.value;
+  const selectedRole = loginUserSelect.value; const passText = loginPass.value;
   if (!passText) { alert("Lütfen şifrenizi girin."); return; }
-  
-  const email = selectedRole + "@sistem.com";
-  signInWithEmailAndPassword(auth, email, passText)
+  signInWithEmailAndPassword(auth, selectedRole + "@sistem.com", passText)
     .then(() => { loginPass.value = ""; })
-    .catch((error) => { alert("Hatalı şifre girdiniz!"); console.error(error); });
+    .catch((error) => { alert("Hatalı şifre girdiniz!"); });
 }
-
-logoutBtn.addEventListener("click", () => { signOut(auth).catch((error) => console.error(error)); });
-
-document.getElementById("resetBtn").addEventListener("click", () => {
-  if (confirm("DİKKAT: Bu işlem sadece BUGÜNÜN tüm sayaçlarını sıfırlar. Emin misiniz?")) {
-    names.forEach((_, index) => { set(ref(database, `Evrak-V4/kayitlar/${todayStr}/counters/${index}`), 0).catch(e => alert("Yetkisiz.")); });
-  }
-});
+logoutBtn.addEventListener("click", () => { signOut(auth); });
 
 const settingsModal = document.getElementById("settingsModal");
-const speedSlider = document.getElementById("adminMarqueeSpeed");
-const speedDisplay = document.getElementById("speedValueDisplay");
-
-speedSlider.addEventListener("input", (e) => { speedDisplay.textContent = e.target.value + " Sn"; });
-
-document.getElementById("settingsBtn").addEventListener("click", () => {
-  document.getElementById("adminDuyuru").value = sysConfigData.announcement || "";
-  document.getElementById("adminShowChampions").checked = sysConfigData.showChampions;
-  speedSlider.value = sysConfigData.marqueeSpeed || 40;
-  speedDisplay.textContent = speedSlider.value + " Sn";
-  settingsModal.style.display = "flex";
-});
-
+document.getElementById("adminMarqueeSpeed").addEventListener("input", (e) => { document.getElementById("speedValueDisplay").textContent = e.target.value + " Sn"; });
 document.getElementById("closeModalBtn").addEventListener("click", () => { settingsModal.style.display = "none"; });
-
 document.getElementById("saveSettingsBtn").addEventListener("click", () => {
   const newSysConfig = {
     announcement: document.getElementById("adminDuyuru").value.trim(),
     showChampions: document.getElementById("adminShowChampions").checked,
-    marqueeSpeed: parseInt(speedSlider.value) || 40
+    marqueeSpeed: parseInt(document.getElementById("adminMarqueeSpeed").value) || 40
   };
-  set(ref(database, 'Evrak-V4/settings/systemConfig'), newSysConfig)
-  .then(() => { alert("Ayarlar başarıyla güncellendi!"); settingsModal.style.display = "none"; })
-  .catch((error) => alert("Hata oluştu: " + error));
+  set(ref(database, 'Evrak-V4/settings/systemConfig'), newSysConfig).then(() => { settingsModal.style.display = "none"; });
 });
 
 const historyModal = document.getElementById("historyModal");
-const historyDateInput = document.getElementById("historyDate");
-const historyMonthInput = document.getElementById("historyMonth");
-const historyResultsDiv = document.getElementById("historyResults");
-const showZerosCb = document.getElementById("showZerosCb");
-const sortSelect = document.getElementById("sortSelect");
-const groupFilterSelect = document.getElementById("groupFilterSelect");
-const queryTypeSelect = document.getElementById("queryTypeSelect");
-const dailyInputGroup = document.getElementById("dailyInputGroup");
-const monthlyInputGroup = document.getElementById("monthlyInputGroup");
-
-document.getElementById("historyBtn").addEventListener("click", () => {
-  historyModal.style.display = "flex"; 
-  historyDateInput.value = ""; historyMonthInput.value = ""; currentHistoryData = null;
-  showZerosCb.checked = false; sortSelect.value = "default"; groupFilterSelect.value = "all";
-  queryTypeSelect.value = "daily";
-  dailyInputGroup.style.display = "block"; monthlyInputGroup.style.display = "none";
-  historyResultsDiv.innerHTML = "<p style='text-align:center; color:#94a3b8; font-size:14px; margin-top:50px;'>Lütfen sol taraftaki menüden sorgulama yapınız.</p>";
-});
+const historyDateInput = document.getElementById("historyDate"); const historyMonthInput = document.getElementById("historyMonth"); const historyResultsDiv = document.getElementById("historyResults");
+const showZerosCb = document.getElementById("showZerosCb"); const sortSelect = document.getElementById("sortSelect"); const groupFilterSelect = document.getElementById("groupFilterSelect"); const queryTypeSelect = document.getElementById("queryTypeSelect");
+const dailyInputGroup = document.getElementById("dailyInputGroup"); const monthlyInputGroup = document.getElementById("monthlyInputGroup");
 
 document.getElementById("closeHistoryBtn").addEventListener("click", () => { historyModal.style.display = "none"; });
 
 queryTypeSelect.addEventListener("change", (e) => {
   if (e.target.value === "daily") { dailyInputGroup.style.display = "block"; monthlyInputGroup.style.display = "none"; } 
   else { dailyInputGroup.style.display = "none"; monthlyInputGroup.style.display = "block"; }
-  currentHistoryData = null;
-  historyResultsDiv.innerHTML = "<p style='text-align:center; color:#94a3b8; font-size:14px; margin-top:50px;'>Lütfen sol taraftaki menüden sorgulama yapınız.</p>";
+  currentHistoryData = null; historyResultsDiv.innerHTML = "<p style='text-align:center; color:#94a3b8;'>Sorgulama yapınız.</p>";
 });
 
-historyDateInput.addEventListener("change", fetchHistoryData);
-historyMonthInput.addEventListener("change", fetchHistoryData);
-showZerosCb.addEventListener("change", renderHistoryList);
-sortSelect.addEventListener("change", renderHistoryList);
-groupFilterSelect.addEventListener("change", renderHistoryList);
+historyDateInput.addEventListener("change", fetchHistoryData); historyMonthInput.addEventListener("change", fetchHistoryData);
+showZerosCb.addEventListener("change", renderHistoryList); sortSelect.addEventListener("change", renderHistoryList); groupFilterSelect.addEventListener("change", renderHistoryList);
 
 function fetchHistoryData() {
   const isMonthly = queryTypeSelect.value === "monthly";
-  historyResultsDiv.innerHTML = "<p style='text-align:center; color:#38bdf8; margin-top:50px;'>Veriler getiriliyor...</p>";
-
+  historyResultsDiv.innerHTML = "<p style='text-align:center; color:#38bdf8;'>Veriler getiriliyor...</p>";
   if (!isMonthly) {
-    const selectedDate = historyDateInput.value; 
-    if (!selectedDate) return;
-    get(ref(database, `Evrak-V4/kayitlar/${selectedDate}/counters`)).then((snap) => {
-      currentHistoryData = snap.val(); renderHistoryList();
-    }).catch(e => { historyResultsDiv.innerHTML = "<p style='color:#ef4444;text-align:center;margin-top:50px;'>Hata oluştu.</p>"; });
+    if (!historyDateInput.value) return;
+    get(ref(database, `Evrak-V4/kayitlar/${historyDateInput.value}/counters`)).then((snap) => { currentHistoryData = snap.val(); renderHistoryList(); });
   } else {
-    const monthVal = historyMonthInput.value; 
-    if (!monthVal) return;
-    const start = `${monthVal}-01`;
-    const end = `${monthVal}-31`;
+    if (!historyMonthInput.value) return;
+    const start = `${historyMonthInput.value}-01`; const end = `${historyMonthInput.value}-31`;
     get(query(ref(database, 'Evrak-V4/kayitlar'), orderByKey(), startAt(start), endAt(end))).then((snap) => {
       let monthlySums = {};
-      snap.forEach(childSnap => {
-        const dailyCounters = childSnap.val().counters || {};
-        for(let i=0; i<22; i++) { monthlySums[i] = (monthlySums[i] || 0) + (dailyCounters[i] || 0); }
-      });
-      currentHistoryData = Object.keys(monthlySums).length > 0 ? monthlySums : null;
-      renderHistoryList();
-    }).catch(e => { historyResultsDiv.innerHTML = "<p style='color:#ef4444;text-align:center;margin-top:50px;'>Hata oluştu.</p>"; });
+      snap.forEach(childSnap => { const dailyCounters = childSnap.val().counters || {}; for(let i=0; i<22; i++) { monthlySums[i] = (monthlySums[i] || 0) + (dailyCounters[i] || 0); } });
+      currentHistoryData = Object.keys(monthlySums).length > 0 ? monthlySums : null; renderHistoryList();
+    });
   }
 }
 
 function renderHistoryList() {
-  if (!currentHistoryData) {
-    historyResultsDiv.innerHTML = "<p style='text-align:center; color:#ef4444; margin-top:50px;'>Seçili kritere ait geçmiş kayıt bulunamadı.</p>";
-    return;
-  }
-  const showZeros = showZerosCb.checked; const sortOrder = sortSelect.value; const groupFilter = groupFilterSelect.value;
+  if (!currentHistoryData) { historyResultsDiv.innerHTML = "<p style='text-align:center; color:#ef4444;'>Kayıt bulunamadı.</p>"; return; }
   let gunlukEvrakTotal = 0; let gunlukExtraTotal = 0; let resultArr = [];
-
   names.forEach((name, i) => {
     const count = currentHistoryData[i] || 0; const isExtra = i >= 17;
     if (isExtra) gunlukExtraTotal += count; else gunlukEvrakTotal += count;
-    if (!showZeros && count === 0) return; 
-    if (groupFilter === 'evrak' && isExtra) return;
-    if (groupFilter === 'guncelleme' && !isExtra) return;
+    if (!showZerosCb.checked && count === 0) return; 
+    if (groupFilterSelect.value === 'evrak' && isExtra) return;
+    if (groupFilterSelect.value === 'guncelleme' && !isExtra) return;
     resultArr.push({ name: name, count: count, isExtra: isExtra, originalIndex: i });
   });
 
-  if (sortOrder === 'desc') resultArr.sort((a, b) => b.count - a.count); 
-  else if (sortOrder === 'asc') resultArr.sort((a, b) => a.count - b.count); 
-  else resultArr.sort((a, b) => a.originalIndex - b.originalIndex); 
+  if (sortSelect.value === 'desc') resultArr.sort((a, b) => b.count - a.count); else if (sortSelect.value === 'asc') resultArr.sort((a, b) => a.count - b.count); else resultArr.sort((a, b) => a.originalIndex - b.originalIndex); 
 
   let html = "";
-  if (resultArr.length === 0) {
-    html = "<p style='text-align:center; color:#94a3b8; font-size:14px; margin-top:50px;'>Seçili filtrelere uygun personel bulunamadı.</p>";
-  } else {
-    resultArr.forEach(item => {
-      let extraClass = item.isExtra ? "gun-fark" : "";
-      html += `<div class='history-item ${extraClass}'><span>${item.name}</span><strong>${item.count}</strong></div>`;
-    });
-  }
+  if (resultArr.length === 0) html = "<p style='text-align:center; color:#94a3b8;'>Personel bulunamadı.</p>";
+  else { resultArr.forEach(item => { html += `<div class='history-item ${item.isExtra ? "gun-fark" : ""}'><span>${item.name}</span><strong>${item.count}</strong></div>`; }); }
   html += `<div class='history-totals'><div>Toplam Evrak: <strong>${gunlukEvrakTotal}</strong></div><div>Toplam Güncelleme: <strong>${gunlukExtraTotal}</strong></div></div>`;
   historyResultsDiv.innerHTML = html;
 }
-</script>
 
-<!-- SAĞ TIK, F12 ENGELLEYİCİ VE KONSOL TUZAĞI -->
-<script>
-  // 1. Geliştirici Konsolu (F12) Açılırsa Çıkacak Korkutucu Mesaj
-  console.log(
-    "%c 🚨 DUR! KODLARI KURCALAMA, YANARSIN! 🚨", 
-    "color: red; font-size: 30px; font-weight: bold; text-shadow: 2px 2px 0 #000;"
-  );
-  console.log(
-    "%cBu alana girmek yetkisiz işlem sayılır. Tüm hareketlerin IP adresinle birlikte loglanmaktadır.", 
-    "color: white; background: red; font-size: 16px; padding: 10px; border-radius: 5px; font-weight: bold;"
-  );
-
-  // 2. Sağ Tık / F12 Tuşlarına Basıldığında Fırlayacak Uyarı Penceresi
-  const uyariMesaji = () => alert("🚨 HOP! KODLARI KURCALAMA, YANARSIN! 🚨\nSistem yöneticisine bildirim gidiyor...");
-
-  document.addEventListener('contextmenu', e => { 
-    e.preventDefault(); 
-    uyariMesaji(); 
-  });
-
-  document.onkeydown = function(e) {
-    // F12 Tuşu
-    if (e.keyCode == 123) {
-      uyariMesaji();
-      return false;
-    }
-    // Ctrl+Shift+I (İncele), Ctrl+Shift+J (Konsol), Ctrl+Shift+C
-    if (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) {
-      uyariMesaji();
-      return false;
-    }
-    // Ctrl+U (Kaynağı Görüntüle)
-    if (e.ctrlKey && e.keyCode == 85) {
-      uyariMesaji();
-      return false;
-    }
-  };
+// 📌 GÜVENLİK
+const uyariMesaji = () => alert("🚨 HOP! KODLARI KURCALAMA, YANARSIN! 🚨");
+document.addEventListener('contextmenu', e => { e.preventDefault(); uyariMesaji(); });
+document.onkeydown = function(e) { if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || (e.ctrlKey && e.keyCode == 85)) { uyariMesaji(); return false; } };
 </script>
 </body>
 </html>
