@@ -300,6 +300,15 @@ const myLoginTime = Date.now();
 
 const container = document.getElementById("buttonContainer");
 
+// 📌 FARE TAKİP KODU (KARTLARDAKİ NEON IŞIK EFEKTİ İÇİN)
+document.body.addEventListener('pointermove', (e) => {
+  const { clientX: x, clientY: y } = e;
+  document.documentElement.style.setProperty('--x', x.toFixed(2));
+  document.documentElement.style.setProperty('--xp', (x / window.innerWidth).toFixed(2));
+  document.documentElement.style.setProperty('--y', y.toFixed(2));
+  document.documentElement.style.setProperty('--yp', (y / window.innerHeight).toFixed(2));
+});
+
 function getFormattedDate(dateObj) {
   const y = dateObj.getFullYear();
   const m = String(dateObj.getMonth() + 1).padStart(2, '0');
